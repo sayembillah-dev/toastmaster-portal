@@ -61,6 +61,7 @@ export type LeanGuest = {
   whatsapp: string;
   whatsappSameAsPhone: boolean;
   details: string;
+  preferredRole?: string;
   visitDate: Date;
   followUpStatus: FollowUpStatus;
   notes: string;
@@ -78,6 +79,7 @@ export type GuestDTO = {
   whatsapp: string;
   whatsappSameAsPhone: boolean;
   details: string;
+  preferredRole: string;
   visitDate: string;
   followUpStatus: FollowUpStatus;
   notes: string;
@@ -95,6 +97,7 @@ export function serializeGuest(g: LeanGuest): GuestDTO {
     whatsapp: g.whatsapp ?? "",
     whatsappSameAsPhone: g.whatsappSameAsPhone ?? true,
     details: g.details ?? "",
+    preferredRole: g.preferredRole ?? "",
     visitDate: g.visitDate instanceof Date ? g.visitDate.toISOString() : String(g.visitDate),
     followUpStatus: g.followUpStatus,
     notes: g.notes ?? "",
@@ -111,7 +114,7 @@ export type LeanTransaction = {
   type: TransactionType;
   category: TransactionCategory;
   amount: number;
-  description: string;
+  description?: string;
   date: Date;
   memberId?: unknown;
   memberName?: string;
@@ -387,7 +390,7 @@ export function serializeTransaction(t: LeanTransaction): TransactionDTO {
     type: t.type,
     category: t.category,
     amount: t.amount,
-    description: t.description,
+    description: t.description ?? "",
     date: t.date instanceof Date ? t.date.toISOString() : String(t.date),
     memberId: t.memberId ? String(t.memberId) : "",
     memberName: t.memberName ?? "",

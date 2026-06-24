@@ -5,6 +5,7 @@ import { useTransactions } from "@/hooks/useFunds";
 import { FundSummaryCards } from "./FundSummaryCards";
 import { TransactionFormDialog } from "./TransactionFormDialog";
 import { DeleteTransactionDialog } from "./DeleteTransactionDialog";
+import { BulkTransactionDialog } from "./BulkTransactionDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,16 +35,24 @@ import {
 import { cn } from "@/lib/utils";
 import type { TransactionDTO } from "@/lib/serializers";
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 export function FundsScreen() {
   const { data: transactions, isLoading } = useTransactions();
 
   const [q, setQ] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editTarget, setEditTarget] = useState<TransactionDTO | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<TransactionDTO | undefined>();
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const allCategories = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES];
   const visibleCategories = typeFilter === "income"
@@ -52,11 +61,19 @@ export function FundsScreen() {
     ? EXPENSE_CATEGORIES
     : allCategories;
 
+  const availableYears = useMemo(() => {
+    if (!transactions) return [];
+    const years = new Set(transactions.map((t) => new Date(t.date).getFullYear()));
+    return Array.from(years).sort((a, b) => b - a);
+  }, [transactions]);
+
   const filtered = useMemo(() => {
     if (!transactions) return [];
     let list = transactions;
     if (typeFilter) list = list.filter((t) => t.type === typeFilter);
     if (categoryFilter) list = list.filter((t) => t.category === categoryFilter);
+    if (yearFilter) list = list.filter((t) => new Date(t.date).getFullYear() === Number(yearFilter));
+    if (monthFilter) list = list.filter((t) => new Date(t.date).getMonth() + 1 === Number(monthFilter));
     if (q) {
       const lower = q.toLowerCase();
       list = list.filter(
@@ -67,7 +84,7 @@ export function FundsScreen() {
       );
     }
     return list;
-  }, [transactions, typeFilter, categoryFilter, q]);
+  }, [transactions, typeFilter, categoryFilter, yearFilter, monthFilter, q]);
 
   function handleAdd() {
     setEditTarget(undefined);
@@ -93,10 +110,16 @@ export function FundsScreen() {
             </p>
           )}
         </div>
-        <Button onClick={handleAdd} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Record transaction
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setBulkOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Bulk record
+          </Button>
+          <Button onClick={handleAdd} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Record transaction
+          </Button>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -104,7 +127,7 @@ export function FundsScreen() {
 
       <Separator />
 
-      {/* Filters */}
+      {/* Filters — row 1: search + type + category */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -120,7 +143,7 @@ export function FundsScreen() {
           onValueChange={(v) => {
             const val = !v || v === "all" ? "" : v;
             setTypeFilter(val);
-            setCategoryFilter(""); // reset category when type changes
+            setCategoryFilter("");
           }}
         >
           <SelectTrigger className="w-full sm:w-36">
@@ -143,6 +166,38 @@ export function FundsScreen() {
             <SelectItem value="all">All categories</SelectItem>
             {visibleCategories.map((c) => (
               <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Filters — row 2: month + year */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Select
+          value={monthFilter}
+          onValueChange={(v) => setMonthFilter(!v || v === "all" ? "" : v)}
+        >
+          <SelectTrigger className="w-full sm:w-40">
+            <SelectValue placeholder="All months" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All months</SelectItem>
+            {MONTH_NAMES.map((name, i) => (
+              <SelectItem key={name} value={String(i + 1)}>{name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={yearFilter}
+          onValueChange={(v) => setYearFilter(!v || v === "all" ? "" : v)}
+        >
+          <SelectTrigger className="w-full sm:w-32">
+            <SelectValue placeholder="All years" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All years</SelectItem>
+            {availableYears.map((y) => (
+              <SelectItem key={y} value={String(y)}>{y}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -195,6 +250,7 @@ export function FundsScreen() {
           onOpenChange={(open) => !open && setDeleteTarget(undefined)}
         />
       )}
+      <BulkTransactionDialog open={bulkOpen} onOpenChange={setBulkOpen} />
     </div>
   );
 }
@@ -215,6 +271,8 @@ function TransactionRow({
     year: "numeric",
   });
 
+  const heading = t.memberName || t.description || t.category;
+
   return (
     <div className="group flex items-center gap-4 px-4 py-3 rounded-xl border bg-card hover:shadow-sm transition-shadow">
       {/* Icon */}
@@ -231,15 +289,17 @@ function TransactionRow({
       {/* Details */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium text-sm truncate">{t.description}</span>
+          <span className="font-medium text-sm truncate">{heading}</span>
           <Badge variant="outline" className="text-xs shrink-0">{t.category}</Badge>
         </div>
         <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
           <span>{date}</span>
-          {t.memberName && (
-            <span className="flex items-center gap-1">
-              <User className="h-3 w-3" />
-              {t.memberName}
+          {t.memberName && t.description && (
+            <span className="truncate">{t.description}</span>
+          )}
+          {!t.memberName && !t.description && (
+            <span className="flex items-center gap-1 opacity-50">
+              <User className="h-3 w-3" /> No member
             </span>
           )}
         </div>

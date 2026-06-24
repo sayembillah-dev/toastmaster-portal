@@ -123,6 +123,12 @@ export const api = {
 
     remove: (id: string) =>
       apiFetch<{ ok: boolean }>(`/api/funds/${id}`, { method: "DELETE" }),
+
+    bulkCreate: (transactions: TransactionInput[]) =>
+      apiFetch<TransactionDTO[]>("/api/funds/bulk", {
+        method: "POST",
+        body: JSON.stringify({ transactions }),
+      }),
   },
 
   tasks: {

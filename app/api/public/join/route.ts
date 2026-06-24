@@ -18,6 +18,7 @@ const schema = z.object({
   whatsapp: z.string().max(20).trim().optional().or(z.literal("")),
   whatsappSameAsPhone: z.preprocess((v) => v === "true" || v === true, z.boolean()),
   details: z.string().max(2000).trim().optional().or(z.literal("")),
+  preferredRole: z.string().max(80).trim().optional().or(z.literal("")),
   eventId: z.string().optional().or(z.literal("")),
 });
 
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
       return jsonBadRequest(firstError ?? "Invalid input");
     }
 
-    const { whatsappSameAsPhone, eventId, ...rest } = parsed.data;
+    const { whatsappSameAsPhone, eventId, preferredRole, ...rest } = parsed.data;
     const phone = rest.phone || "";
 
     // Find or create guest — deduplicate by phone
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
         ...rest,
         whatsapp: whatsappSameAsPhone ? phone : rest.whatsapp ?? "",
         whatsappSameAsPhone,
+        preferredRole: preferredRole ?? "",
         visitDate: new Date(),
         followUpStatus: "new",
       });
@@ -91,7 +93,7 @@ export async function POST(req: Request) {
             email: guest.email || "",
             phone: phone,
             guestId,
-            notes: "",
+            notes: preferredRole ? `Preferred role: ${preferredRole}` : "",
           });
           await event.save();
         }

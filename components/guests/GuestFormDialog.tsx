@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateGuest, useUpdateGuest } from "@/hooks/useGuests";
-import { FOLLOW_UP_STATUSES, FOLLOW_UP_LABELS, type FollowUpStatus } from "@/lib/guestConstants";
+import { FOLLOW_UP_STATUSES, FOLLOW_UP_LABELS, GUEST_PREFERRED_ROLES, type FollowUpStatus } from "@/lib/guestConstants";
 import { MemberAvatar } from "@/components/shared/Avatar";
 import { api } from "@/lib/clientApi";
 import { toast } from "sonner";
@@ -42,6 +42,7 @@ type FormState = {
   whatsapp: string;
   whatsappSameAsPhone: boolean;
   details: string;
+  preferredRole: string;
   visitDate: string;
   followUpStatus: FollowUpStatus;
   notes: string;
@@ -54,6 +55,7 @@ const EMPTY_FORM: FormState = {
   whatsapp: "",
   whatsappSameAsPhone: true,
   details: "",
+  preferredRole: "",
   visitDate: new Date().toISOString().split("T")[0],
   followUpStatus: "new",
   notes: "",
@@ -78,6 +80,7 @@ export function GuestFormDialog({ open, onOpenChange, mode, guest }: Props) {
           whatsapp: guest.whatsapp,
           whatsappSameAsPhone: guest.whatsappSameAsPhone,
           details: guest.details,
+          preferredRole: guest.preferredRole ?? "",
           visitDate: guest.visitDate.split("T")[0],
           followUpStatus: guest.followUpStatus,
           notes: guest.notes,
@@ -269,6 +272,28 @@ export function GuestFormDialog({ open, onOpenChange, mode, guest }: Props) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Preferred role */}
+          <div className="space-y-1.5">
+            <Label>
+              Preferred role
+              <span className="ml-1 text-xs text-muted-foreground">(optional)</span>
+            </Label>
+            <Select
+              value={form.preferredRole || "none"}
+              onValueChange={(v) => set("preferredRole", v && v !== "none" ? v : "")}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="No preference" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No preference</SelectItem>
+                {GUEST_PREFERRED_ROLES.map((role) => (
+                  <SelectItem key={role} value={role}>{role}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Details */}

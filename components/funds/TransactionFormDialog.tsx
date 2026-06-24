@@ -260,7 +260,7 @@ export function TransactionFormDialog({ open, onOpenChange, mode, transaction }:
 
           {/* Description */}
           <div className="space-y-1.5">
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="description">Description <span className="text-xs text-muted-foreground">(optional)</span></Label>
             <Textarea
               id="description"
               value={form.description}
@@ -268,7 +268,6 @@ export function TransactionFormDialog({ open, onOpenChange, mode, transaction }:
               placeholder="e.g. Monthly membership fee from Ahmad"
               rows={2}
               maxLength={500}
-              required
             />
           </div>
 

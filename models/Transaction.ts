@@ -22,7 +22,7 @@ const TransactionSchema = new Schema<ITransaction>(
     type: { type: String, enum: TRANSACTION_TYPES, required: true },
     category: { type: String, enum: ALL_CATEGORIES, required: true },
     amount: { type: Number, required: true, min: 0.01 },
-    description: { type: String, trim: true, required: true, maxlength: 500 },
+    description: { type: String, trim: true, default: "", maxlength: 500 },
     date: { type: Date, required: true },
     memberId: { type: Schema.Types.ObjectId, ref: "Member" },
     memberName: { type: String, trim: true, default: "" },

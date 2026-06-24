@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Printer, CheckCircle2, Loader2, Copy } from "lucide-react";
+import { ArrowLeft, Save, Printer, CheckCircle2, Loader2, Copy, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUpdateEvent } from "@/hooks/useEvents";
 import { AgendaTab } from "./AgendaTab";
@@ -141,6 +141,16 @@ export function EventDetailPage({ event }: Props) {
     }
   };
 
+  const handleInviteGuest = async () => {
+    const link = `${window.location.origin}/meetings/${event.id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Invite link copied! Share it with your guest.");
+    } catch {
+      toast.error(`Could not copy automatically. Link: ${link}`);
+    }
+  };
+
   const heading =
     form.meetingNumber
       ? `Meeting #${form.meetingNumber}${form.theme ? ` — ${form.theme}` : ""}`
@@ -178,6 +188,18 @@ export function EventDetailPage({ event }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
+          {!form.isTemplate && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs h-8"
+              onClick={handleInviteGuest}
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Invite Guest</span>
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"

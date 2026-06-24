@@ -11,6 +11,7 @@ export interface IGuest extends Document {
   whatsapp: string;
   whatsappSameAsPhone: boolean;
   details: string;
+  preferredRole: string;
   visitDate: Date;
   followUpStatus: FollowUpStatus;
   notes: string;
@@ -28,6 +29,7 @@ const GuestSchema = new Schema<IGuest>(
     whatsapp: { type: String, trim: true, default: "" },
     whatsappSameAsPhone: { type: Boolean, default: true },
     details: { type: String, trim: true, default: "", maxlength: 2000 },
+    preferredRole: { type: String, trim: true, default: "", maxlength: 80 },
     visitDate: { type: Date, required: true },
     followUpStatus: { type: String, enum: FOLLOW_UP_STATUSES, default: "new" },
     notes: { type: String, trim: true, default: "", maxlength: 1000 },

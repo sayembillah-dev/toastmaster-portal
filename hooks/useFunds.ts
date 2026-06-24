@@ -42,6 +42,17 @@ export function useUpdateTransaction(id: string) {
   });
 }
 
+export function useBulkCreateTransactions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (transactions: TransactionInput[]) => api.funds.bulkCreate(transactions),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.funds.transactions });
+      qc.invalidateQueries({ queryKey: qk.funds.summary });
+    },
+  });
+}
+
 export function useDeleteTransaction() {
   const qc = useQueryClient();
   return useMutation({

@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { buildAgendaSchedule } from "@/lib/agendaSchedule";
 import { AGENDA_ROLE_LABELS } from "@/lib/eventConstants";
+import { GUEST_PREFERRED_ROLES } from "@/lib/guestConstants";
 import type { EventDTO } from "@/lib/serializers";
 
 type PublicEvent = Omit<EventDTO, "attendees">;
@@ -29,8 +30,8 @@ function fmtTime(t: string) {
 }
 
 // ── Join Form ─────────────────────────────────────────────────────────────────
-type JoinFormState = { fullName: string; email: string; phone: string; details: string };
-const EMPTY: JoinFormState = { fullName: "", email: "", phone: "", details: "" };
+type JoinFormState = { fullName: string; email: string; phone: string; details: string; preferredRole: string };
+const EMPTY: JoinFormState = { fullName: "", email: "", phone: "", details: "", preferredRole: "" };
 
 function JoinForm({ eventId }: { eventId: string }) {
   const [form, setForm] = useState<JoinFormState>(EMPTY);
@@ -62,6 +63,7 @@ function JoinForm({ eventId }: { eventId: string }) {
       fd.append("whatsapp", form.phone);
       fd.append("whatsappSameAsPhone", "true");
       fd.append("details", form.details);
+      fd.append("preferredRole", form.preferredRole);
       fd.append("eventId", eventId);
       if (photo) fd.append("photo", photo);
 
@@ -146,6 +148,22 @@ function JoinForm({ eventId }: { eventId: string }) {
           />
         </div>
       </div>
+      <div>
+        <Label htmlFor="jf-role" className="text-sm font-medium text-[#2A201A]">Preferred role (optional)</Label>
+        <select
+          id="jf-role"
+          value={form.preferredRole}
+          onChange={(e) => set("preferredRole", e.target.value)}
+          className="mt-1 w-full rounded-md border border-[#E7DAC6] bg-white px-3 py-2 text-sm text-[#2A201A] focus:border-[#9E1D06] focus:outline-none"
+        >
+          <option value="">No preference</option>
+          {GUEST_PREFERRED_ROLES.map((role) => (
+            <option key={role} value={role}>{role}</option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-[#7B6B5C]">Want to try a role in the meeting? Let us know.</p>
+      </div>
+
       <div>
         <Label htmlFor="jf-details" className="text-sm font-medium text-[#2A201A]">About yourself (optional)</Label>
         <Textarea

@@ -15,3 +15,17 @@ export const FOLLOW_UP_LABELS: Record<FollowUpStatus, string> = {
   not_interested: "Not Interested",
   joined: "Joined",
 };
+
+// Roles a guest can express interest in trying at a meeting.
+export const GUEST_PREFERRED_ROLES = [
+  "Prepared Speaker",
+  "Table Topics Speaker",
+  "Evaluator",
+  "Timer",
+  "Ah-Counter",
+  "Grammarian",
+  "General Evaluator",
+  "Just Observing",
+] as const;
+
+export type GuestPreferredRole = (typeof GUEST_PREFERRED_ROLES)[number];

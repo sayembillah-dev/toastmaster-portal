@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Camera, UserCircle2, Loader2 } from "lucide-react";
+import { GUEST_PREFERRED_ROLES } from "@/lib/guestConstants";
 
 type FormState = {
   fullName: string;
@@ -15,6 +16,7 @@ type FormState = {
   whatsapp: string;
   whatsappSameAsPhone: boolean;
   details: string;
+  preferredRole: string;
 };
 
 const EMPTY: FormState = {
@@ -24,6 +26,7 @@ const EMPTY: FormState = {
   whatsapp: "",
   whatsappSameAsPhone: true,
   details: "",
+  preferredRole: "",
 };
 
 export default function JoinPage() {
@@ -73,6 +76,7 @@ export default function JoinPage() {
       fd.append("whatsapp", form.whatsappSameAsPhone ? form.phone : form.whatsapp);
       fd.append("whatsappSameAsPhone", String(form.whatsappSameAsPhone));
       fd.append("details", form.details);
+      fd.append("preferredRole", form.preferredRole);
       if (photoFile) fd.append("photo", photoFile);
 
       const res = await fetch("/api/public/guests", { method: "POST", body: fd });
@@ -213,6 +217,22 @@ export default function JoinPage() {
                   disabled={form.whatsappSameAsPhone}
                   className={form.whatsappSameAsPhone ? "opacity-50" : ""}
                 />
+              </div>
+
+              {/* Preferred role */}
+              <div className="space-y-1.5">
+                <Label htmlFor="preferredRole">Preferred role <span className="text-xs text-muted-foreground">(optional)</span></Label>
+                <select
+                  id="preferredRole"
+                  value={form.preferredRole}
+                  onChange={(e) => set("preferredRole", e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:border-ring focus:outline-none"
+                >
+                  <option value="">No preference</option>
+                  {GUEST_PREFERRED_ROLES.map((role) => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
               </div>
 
               {/* About */}

@@ -2,6 +2,7 @@ export const TRANSACTION_TYPES = ["income", "expense"] as const;
 export type TransactionType = (typeof TRANSACTION_TYPES)[number];
 
 export const INCOME_CATEGORIES = [
+  "Monthly Club Fee",
   "Membership Fee",
   "Event Registration",
   "Fine",

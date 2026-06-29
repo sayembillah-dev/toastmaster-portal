@@ -1,5 +1,5 @@
-import type { MemberDTO, GuestDTO, TransactionDTO, FundSummaryDTO, TaskDTO, EventDTO } from "./serializers";
-import type { MemberInput, MemberUpdateInput, GuestInput, GuestUpdateInput, TransactionInput, TransactionUpdateInput, TaskInput, TaskUpdateInput, EventInput, EventUpdateInput } from "./validation";
+import type { MemberDTO, GuestDTO, TransactionDTO, FundSummaryDTO, TaskDTO, EventDTO, PlannerRowDTO } from "./serializers";
+import type { MemberInput, MemberUpdateInput, GuestInput, GuestUpdateInput, TransactionInput, TransactionUpdateInput, TaskInput, TaskUpdateInput, EventInput, EventUpdateInput, PlannerRowInput, PlannerRowUpdateInput } from "./validation";
 
 async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -175,5 +175,24 @@ export const api = {
 
     remove: (id: string) =>
       apiFetch<{ ok: boolean }>(`/api/events/${id}`, { method: "DELETE" }),
+  },
+
+  planner: {
+    list: () => apiFetch<PlannerRowDTO[]>("/api/planner"),
+
+    create: (data: PlannerRowInput) =>
+      apiFetch<PlannerRowDTO>("/api/planner", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    update: (id: string, data: PlannerRowUpdateInput) =>
+      apiFetch<PlannerRowDTO>(`/api/planner/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+
+    remove: (id: string) =>
+      apiFetch<{ ok: boolean }>(`/api/planner/${id}`, { method: "DELETE" }),
   },
 };

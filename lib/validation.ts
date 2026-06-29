@@ -173,3 +173,29 @@ export const eventUpdateSchema = eventSchema.partial();
 
 export type EventInput = z.infer<typeof eventSchema>;
 export type EventUpdateInput = z.infer<typeof eventUpdateSchema>;
+
+// ── Planner ───────────────────────────────────────────────────────────────────
+
+export const plannerRowSchema = z.object({
+  date: z.string().min(1, "Date is required"),
+  tmod: z.string().max(80).trim().optional().or(z.literal("")),
+  ttm: z.string().max(80).trim().optional().or(z.literal("")),
+  tableTopicEvaluator: z.string().max(80).trim().optional().or(z.literal("")),
+  preparedSpeaker1: z.string().max(80).trim().optional().or(z.literal("")),
+  preparedEvaluator1: z.string().max(80).trim().optional().or(z.literal("")),
+  preparedSpeaker2: z.string().max(80).trim().optional().or(z.literal("")),
+  preparedEvaluator2: z.string().max(80).trim().optional().or(z.literal("")),
+  preparedSpeaker3: z.string().max(80).trim().optional().or(z.literal("")),
+  preparedEvaluator3: z.string().max(80).trim().optional().or(z.literal("")),
+  generalEvaluator: z.string().max(80).trim().optional().or(z.literal("")),
+  timer: z.string().max(80).trim().optional().or(z.literal("")),
+  ahCounter: z.string().max(80).trim().optional().or(z.literal("")),
+  grammarian: z.string().max(80).trim().optional().or(z.literal("")),
+  theme: z.string().max(200).trim().optional().or(z.literal("")),
+  notes: z.string().max(1000).trim().optional().or(z.literal("")),
+});
+
+export const plannerRowUpdateSchema = plannerRowSchema.partial();
+
+export type PlannerRowInput = z.infer<typeof plannerRowSchema>;
+export type PlannerRowUpdateInput = z.infer<typeof plannerRowUpdateSchema>;

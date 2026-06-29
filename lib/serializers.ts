@@ -384,6 +384,76 @@ export function serializeEvent(e: LeanEvent): EventDTO {
   };
 }
 
+// ── Planner ───────────────────────────────────────────────────────────────────
+
+export type LeanPlannerRow = {
+  _id: unknown;
+  date: Date;
+  tmod: string;
+  ttm: string;
+  tableTopicEvaluator: string;
+  preparedSpeaker1: string;
+  preparedEvaluator1: string;
+  preparedSpeaker2: string;
+  preparedEvaluator2: string;
+  preparedSpeaker3: string;
+  preparedEvaluator3: string;
+  generalEvaluator: string;
+  timer: string;
+  ahCounter: string;
+  grammarian: string;
+  theme: string;
+  notes: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type PlannerRowDTO = {
+  id: string;
+  date: string;
+  tmod: string;
+  ttm: string;
+  tableTopicEvaluator: string;
+  preparedSpeaker1: string;
+  preparedEvaluator1: string;
+  preparedSpeaker2: string;
+  preparedEvaluator2: string;
+  preparedSpeaker3: string;
+  preparedEvaluator3: string;
+  generalEvaluator: string;
+  timer: string;
+  ahCounter: string;
+  grammarian: string;
+  theme: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function serializePlannerRow(p: LeanPlannerRow): PlannerRowDTO {
+  return {
+    id: String(p._id),
+    date: p.date instanceof Date ? p.date.toISOString() : String(p.date),
+    tmod: p.tmod ?? "",
+    ttm: p.ttm ?? "",
+    tableTopicEvaluator: p.tableTopicEvaluator ?? "",
+    preparedSpeaker1: p.preparedSpeaker1 ?? "",
+    preparedEvaluator1: p.preparedEvaluator1 ?? "",
+    preparedSpeaker2: p.preparedSpeaker2 ?? "",
+    preparedEvaluator2: p.preparedEvaluator2 ?? "",
+    preparedSpeaker3: p.preparedSpeaker3 ?? "",
+    preparedEvaluator3: p.preparedEvaluator3 ?? "",
+    generalEvaluator: p.generalEvaluator ?? "",
+    timer: p.timer ?? "",
+    ahCounter: p.ahCounter ?? "",
+    grammarian: p.grammarian ?? "",
+    theme: p.theme ?? "",
+    notes: p.notes ?? "",
+    createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : String(p.createdAt),
+    updatedAt: p.updatedAt instanceof Date ? p.updatedAt.toISOString() : String(p.updatedAt),
+  };
+}
+
 export function serializeTransaction(t: LeanTransaction): TransactionDTO {
   return {
     id: String(t._id),

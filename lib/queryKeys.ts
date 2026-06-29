@@ -21,4 +21,7 @@ export const qk = {
     detail: (id: string) => ["events", id] as const,
     templates: ["events", "templates"] as const,
   },
+  planner: {
+    all: ["planner"] as const,
+  },
 };

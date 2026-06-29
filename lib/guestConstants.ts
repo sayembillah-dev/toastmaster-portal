@@ -20,11 +20,13 @@ export const FOLLOW_UP_LABELS: Record<FollowUpStatus, string> = {
 export const GUEST_PREFERRED_ROLES = [
   "Prepared Speaker",
   "Table Topics Speaker",
+  "Table Topic Master",
+  "Toastmaster of the Day",
   "Evaluator",
+  "General Evaluator",
   "Timer",
   "Ah-Counter",
   "Grammarian",
-  "General Evaluator",
   "Just Observing",
 ] as const;
 

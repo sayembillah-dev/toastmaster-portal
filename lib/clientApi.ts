@@ -1,4 +1,4 @@
-import type { MemberDTO, GuestDTO, TransactionDTO, FundSummaryDTO, TaskDTO, EventDTO, PlannerRowDTO } from "./serializers";
+import type { MemberDTO, GuestDTO, TransactionDTO, FundSummaryDTO, PaginatedTransactionsDTO, TaskDTO, EventDTO, PlannerRowDTO } from "./serializers";
 import type { MemberInput, MemberUpdateInput, GuestInput, GuestUpdateInput, TransactionInput, TransactionUpdateInput, TaskInput, TaskUpdateInput, EventInput, EventUpdateInput, PlannerRowInput, PlannerRowUpdateInput } from "./validation";
 
 async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
@@ -95,14 +95,22 @@ export const api = {
   },
 
   funds: {
-    list: (params?: { type?: string; category?: string; from?: string; to?: string }) => {
+    list: (params?: {
+      type?: string; category?: string; from?: string; to?: string;
+      month?: string; year?: string; q?: string; page?: number; pageSize?: number;
+    }) => {
       const qs = new URLSearchParams();
-      if (params?.type) qs.set("type", params.type);
+      if (params?.type)     qs.set("type",     params.type);
       if (params?.category) qs.set("category", params.category);
-      if (params?.from) qs.set("from", params.from);
-      if (params?.to) qs.set("to", params.to);
+      if (params?.from)     qs.set("from",     params.from);
+      if (params?.to)       qs.set("to",       params.to);
+      if (params?.month)    qs.set("month",    params.month);
+      if (params?.year)     qs.set("year",     params.year);
+      if (params?.q)        qs.set("q",        params.q);
+      if (params?.page)     qs.set("page",     String(params.page));
+      if (params?.pageSize) qs.set("pageSize", String(params.pageSize));
       const query = qs.toString();
-      return apiFetch<TransactionDTO[]>(`/api/funds${query ? `?${query}` : ""}`);
+      return apiFetch<PaginatedTransactionsDTO>(`/api/funds${query ? `?${query}` : ""}`);
     },
 
     summary: () => apiFetch<FundSummaryDTO>("/api/funds/summary"),

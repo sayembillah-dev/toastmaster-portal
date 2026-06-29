@@ -299,17 +299,6 @@ export function BulkTransactionDialog({ open, onOpenChange }: Props) {
               )}
             </div>
 
-            {/* Add entry footer */}
-            <div className="border-t px-6 py-3 shrink-0">
-              <button
-                type="button"
-                onClick={addRow}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-              >
-                <Plus className="h-4 w-4" />
-                Add entry
-              </button>
-            </div>
           </div>
         </div>
       </DialogContent>

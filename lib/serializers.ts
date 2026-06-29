@@ -144,6 +144,14 @@ export type FundSummaryDTO = {
   transactionCount: number;
 };
 
+export type PaginatedTransactionsDTO = {
+  data:       TransactionDTO[];
+  total:      number;
+  page:       number;
+  pageSize:   number;
+  totalPages: number;
+};
+
 // ── Task ─────────────────────────────────────────────────────────────────────
 
 export type LeanTask = {

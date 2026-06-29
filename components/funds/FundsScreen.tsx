@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTransactions } from "@/hooks/useFunds";
 import { FundSummaryCards } from "./FundSummaryCards";
 import { TransactionFormDialog } from "./TransactionFormDialog";
@@ -26,6 +26,8 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   User,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   INCOME_CATEGORIES,
@@ -35,56 +37,69 @@ import {
 import { cn } from "@/lib/utils";
 import type { TransactionDTO } from "@/lib/serializers";
 
+const PAGE_SIZE = 20;
+
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
 
+// Static year list: current year back 6 years
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => CURRENT_YEAR - i);
+
+function useDebounce<T>(value: T, delay = 400): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
+
 export function FundsScreen() {
-  const { data: transactions, isLoading } = useTransactions();
-
-  const [q, setQ] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
+  const [q, setQ]                       = useState("");
+  const [typeFilter, setTypeFilter]     = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [monthFilter, setMonthFilter] = useState("");
-  const [yearFilter, setYearFilter] = useState("");
-  const [formOpen, setFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [editTarget, setEditTarget] = useState<TransactionDTO | undefined>();
-  const [deleteTarget, setDeleteTarget] = useState<TransactionDTO | undefined>();
-  const [bulkOpen, setBulkOpen] = useState(false);
+  const [monthFilter, setMonthFilter]   = useState("");
+  const [yearFilter, setYearFilter]     = useState("");
+  const [page, setPage]                 = useState(1);
 
-  const allCategories = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES];
+  const [formOpen, setFormOpen]         = useState(false);
+  const [formMode, setFormMode]         = useState<"create" | "edit">("create");
+  const [editTarget, setEditTarget]     = useState<TransactionDTO | undefined>();
+  const [deleteTarget, setDeleteTarget] = useState<TransactionDTO | undefined>();
+  const [bulkOpen, setBulkOpen]         = useState(false);
+
+  const debouncedQ = useDebounce(q);
+
+  // Reset to page 1 whenever any filter changes
+  useEffect(() => { setPage(1); }, [debouncedQ, typeFilter, categoryFilter, monthFilter, yearFilter]);
+
+  const params = {
+    ...(debouncedQ       && { q:        debouncedQ }),
+    ...(typeFilter       && { type:     typeFilter }),
+    ...(categoryFilter   && { category: categoryFilter }),
+    ...(monthFilter      && { month:    monthFilter }),
+    ...(yearFilter       && { year:     yearFilter }),
+    page,
+    pageSize: PAGE_SIZE,
+  };
+
+  const { data: paged, isLoading } = useTransactions(params);
+  const transactions = paged?.data ?? [];
+  const total        = paged?.total ?? 0;
+  const totalPages   = paged?.totalPages ?? 1;
+
+  const allCategories    = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES];
   const visibleCategories = typeFilter === "income"
     ? INCOME_CATEGORIES
     : typeFilter === "expense"
     ? EXPENSE_CATEGORIES
     : allCategories;
 
-  const availableYears = useMemo(() => {
-    if (!transactions) return [];
-    const years = new Set(transactions.map((t) => new Date(t.date).getFullYear()));
-    return Array.from(years).sort((a, b) => b - a);
-  }, [transactions]);
-
-  const filtered = useMemo(() => {
-    if (!transactions) return [];
-    let list = transactions;
-    if (typeFilter) list = list.filter((t) => t.type === typeFilter);
-    if (categoryFilter) list = list.filter((t) => t.category === categoryFilter);
-    if (yearFilter) list = list.filter((t) => new Date(t.date).getFullYear() === Number(yearFilter));
-    if (monthFilter) list = list.filter((t) => new Date(t.date).getMonth() + 1 === Number(monthFilter));
-    if (q) {
-      const lower = q.toLowerCase();
-      list = list.filter(
-        (t) =>
-          t.description.toLowerCase().includes(lower) ||
-          t.category.toLowerCase().includes(lower) ||
-          t.memberName.toLowerCase().includes(lower),
-      );
-    }
-    return list;
-  }, [transactions, typeFilter, categoryFilter, yearFilter, monthFilter, q]);
+  const pageStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const pageEnd   = Math.min(page * PAGE_SIZE, total);
 
   function handleAdd() {
     setEditTarget(undefined);
@@ -98,19 +113,26 @@ export function FundsScreen() {
     setFormOpen(true);
   }
 
+  const hasActiveFilter = !!(q || typeFilter || categoryFilter || monthFilter || yearFilter);
+
+  function clearFilters() {
+    setQ(""); setTypeFilter(""); setCategoryFilter(""); setMonthFilter(""); setYearFilter("");
+  }
+
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h2 className="text-2xl font-bold">Club Funds</h2>
-          {transactions && (
+          {paged && (
             <p className="text-sm text-muted-foreground mt-0.5">
-              {transactions.length} transaction{transactions.length !== 1 ? "s" : ""} recorded
+              {total} transaction{total !== 1 ? "s" : ""}
+              {hasActiveFilter && " matching filters"}
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" onClick={() => setBulkOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             Bulk record
@@ -141,8 +163,7 @@ export function FundsScreen() {
         <Select
           value={typeFilter}
           onValueChange={(v) => {
-            const val = !v || v === "all" ? "" : v;
-            setTypeFilter(val);
+            setTypeFilter(!v || v === "all" ? "" : v);
             setCategoryFilter("");
           }}
         >
@@ -171,7 +192,7 @@ export function FundsScreen() {
         </Select>
       </div>
 
-      {/* Filters — row 2: month + year */}
+      {/* Filters — row 2: month + year + clear */}
       <div className="flex flex-col sm:flex-row gap-3">
         <Select
           value={monthFilter}
@@ -196,11 +217,16 @@ export function FundsScreen() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All years</SelectItem>
-            {availableYears.map((y) => (
+            {YEAR_OPTIONS.map((y) => (
               <SelectItem key={y} value={String(y)}>{y}</SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {hasActiveFilter && (
+          <Button variant="ghost" size="sm" className="h-10 text-muted-foreground hover:text-foreground" onClick={clearFilters}>
+            Clear filters
+          </Button>
+        )}
       </div>
 
       {/* Transaction list */}
@@ -210,9 +236,9 @@ export function FundsScreen() {
             <Skeleton key={i} className="h-16 rounded-xl" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : transactions.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
-          {transactions?.length === 0 ? (
+          {!hasActiveFilter && total === 0 ? (
             <div className="space-y-3">
               <p className="font-medium">No transactions yet</p>
               <p className="text-sm">Start recording income and expenses.</p>
@@ -221,20 +247,57 @@ export function FundsScreen() {
               </Button>
             </div>
           ) : (
-            <p className="font-medium">No transactions match your filters</p>
+            <div className="space-y-2">
+              <p className="font-medium">No transactions match your filters</p>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>Clear filters</Button>
+            </div>
           )}
         </div>
       ) : (
-        <div className="space-y-2">
-          {filtered.map((t) => (
-            <TransactionRow
-              key={t.id}
-              transaction={t}
-              onEdit={handleEdit}
-              onDelete={setDeleteTarget}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-2">
+            {transactions.map((t) => (
+              <TransactionRow
+                key={t.id}
+                transaction={t}
+                onEdit={handleEdit}
+                onDelete={setDeleteTarget}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-2">
+              <p className="text-sm text-muted-foreground">
+                {pageStart}–{pageEnd} of {total}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="min-w-16 text-center text-sm tabular-nums">
+                  {page} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <TransactionFormDialog
@@ -261,32 +324,24 @@ function TransactionRow({
   onDelete,
 }: {
   transaction: TransactionDTO;
-  onEdit: (t: TransactionDTO) => void;
-  onDelete: (t: TransactionDTO) => void;
+  onEdit:  (t: TransactionDTO) => void;
+  onDelete:(t: TransactionDTO) => void;
 }) {
   const isIncome = t.type === "income";
   const date = new Date(t.date).toLocaleDateString("en-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+    day: "numeric", month: "short", year: "numeric",
   });
-
   const heading = t.memberName || t.description || t.category;
 
   return (
     <div className="group flex items-center gap-4 px-4 py-3 rounded-xl border bg-card hover:shadow-sm transition-shadow">
-      {/* Icon */}
       <div className={cn(
         "p-2 rounded-full shrink-0",
         isIncome ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600",
       )}>
-        {isIncome
-          ? <ArrowUpCircle className="h-4 w-4" />
-          : <ArrowDownCircle className="h-4 w-4" />
-        }
+        {isIncome ? <ArrowUpCircle className="h-4 w-4" /> : <ArrowDownCircle className="h-4 w-4" />}
       </div>
 
-      {/* Details */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium text-sm truncate">{heading}</span>
@@ -294,9 +349,7 @@ function TransactionRow({
         </div>
         <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
           <span>{date}</span>
-          {t.memberName && t.description && (
-            <span className="truncate">{t.description}</span>
-          )}
+          {t.memberName && t.description && <span className="truncate">{t.description}</span>}
           {!t.memberName && !t.description && (
             <span className="flex items-center gap-1 opacity-50">
               <User className="h-3 w-3" /> No member
@@ -305,7 +358,6 @@ function TransactionRow({
         </div>
       </div>
 
-      {/* Amount */}
       <span className={cn(
         "font-semibold text-sm shrink-0",
         isIncome ? "text-green-600" : "text-destructive",
@@ -313,7 +365,6 @@ function TransactionRow({
         {isIncome ? "+" : "−"}{formatAmount(t.amount)}
       </span>
 
-      {/* Actions */}
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
         <button
           onClick={() => onEdit(t)}

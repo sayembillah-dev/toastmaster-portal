@@ -8,7 +8,8 @@ export const qk = {
     detail: (id: string) => ["guests", id] as const,
   },
   funds: {
-    transactions: ["transactions"] as const,
+    all: ["transactions"] as const,
+    transactions: (params: Record<string, unknown>) => ["transactions", params] as const,
     detail: (id: string) => ["transactions", id] as const,
     summary: ["funds-summary"] as const,
   },

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, UserSearch, DollarSign, CheckSquare, CalendarDays, BookOpen, Menu, TableProperties } from "lucide-react";
+import { Users, UserSearch, DollarSign, CheckSquare, CalendarDays, BookOpen, Menu, TableProperties, Images } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SignOutButton } from "./SignOutButton";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { label: "Tasks", href: "/tasks", icon: CheckSquare },
   { label: "Events", href: "/events", icon: CalendarDays },
   { label: "Planner", href: "/planner", icon: TableProperties },
+  { label: "Resources", href: "/resources", icon: Images },
   { label: "Ground Rules", href: "/rules", icon: BookOpen, soon: true },
 ];
 

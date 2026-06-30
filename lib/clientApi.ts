@@ -1,4 +1,4 @@
-import type { MemberDTO, GuestDTO, TransactionDTO, FundSummaryDTO, PaginatedTransactionsDTO, TaskDTO, EventDTO, PlannerRowDTO } from "./serializers";
+import type { MemberDTO, GuestDTO, TransactionDTO, FundSummaryDTO, PaginatedTransactionsDTO, TaskDTO, EventDTO, PlannerRowDTO, ClubResourceDTO, PaginatedClubResourcesDTO, ClubDocumentDTO, PaginatedClubDocumentsDTO } from "./serializers";
 import type { MemberInput, MemberUpdateInput, GuestInput, GuestUpdateInput, TransactionInput, TransactionUpdateInput, TaskInput, TaskUpdateInput, EventInput, EventUpdateInput, PlannerRowInput, PlannerRowUpdateInput } from "./validation";
 
 async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
@@ -185,6 +185,73 @@ export const api = {
       apiFetch<{ ok: boolean }>(`/api/events/${id}`, { method: "DELETE" }),
   },
 
+  documents: {
+    list: (params?: { q?: string; type?: string; page?: number; pageSize?: number }) => {
+      const qs = new URLSearchParams();
+      if (params?.q)        qs.set("q",        params.q);
+      if (params?.type)     qs.set("type",     params.type);
+      if (params?.page)     qs.set("page",     String(params.page));
+      if (params?.pageSize) qs.set("pageSize", String(params.pageSize));
+      const query = qs.toString();
+      return apiFetch<PaginatedClubDocumentsDTO>(`/api/documents${query ? `?${query}` : ""}`);
+    },
+
+    uploadFile: (title: string, file: File) => {
+      const form = new FormData();
+      form.append("title", title);
+      form.append("file", file);
+      return fetch("/api/documents", { method: "POST", body: form }).then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error?.message ?? "Upload failed");
+        }
+        return res.json() as Promise<ClubDocumentDTO>;
+      });
+    },
+
+    createLink: (data: { title: string; url: string; description?: string }) =>
+      apiFetch<ClubDocumentDTO>("/api/documents", {
+        method: "POST",
+        body: JSON.stringify({ type: "link", ...data }),
+      }),
+
+    createText: (data: { title: string; content: string }) =>
+      apiFetch<ClubDocumentDTO>("/api/documents", {
+        method: "POST",
+        body: JSON.stringify({ type: "text", ...data }),
+      }),
+
+    remove: (id: string) =>
+      apiFetch<{ ok: boolean }>(`/api/documents/${id}`, { method: "DELETE" }),
+  },
+
+  resources: {
+    list: (params?: { q?: string; page?: number; pageSize?: number }) => {
+      const qs = new URLSearchParams();
+      if (params?.q)        qs.set("q",        params.q);
+      if (params?.page)     qs.set("page",     String(params.page));
+      if (params?.pageSize) qs.set("pageSize", String(params.pageSize));
+      const query = qs.toString();
+      return apiFetch<PaginatedClubResourcesDTO>(`/api/resources${query ? `?${query}` : ""}`);
+    },
+
+    upload: (title: string, file: File) => {
+      const form = new FormData();
+      form.append("title", title);
+      form.append("image", file);
+      return fetch("/api/resources", { method: "POST", body: form }).then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error?.message ?? "Upload failed");
+        }
+        return res.json() as Promise<ClubResourceDTO>;
+      });
+    },
+
+    remove: (id: string) =>
+      apiFetch<{ ok: boolean }>(`/api/resources/${id}`, { method: "DELETE" }),
+  },
+
   planner: {
     list: () => apiFetch<PlannerRowDTO[]>("/api/planner"),
 
@@ -202,5 +269,11 @@ export const api = {
 
     remove: (id: string) =>
       apiFetch<{ ok: boolean }>(`/api/planner/${id}`, { method: "DELETE" }),
+
+    bulkCreate: (rows: PlannerRowInput[]) =>
+      apiFetch<PlannerRowDTO[]>("/api/planner/bulk", {
+        method: "POST",
+        body: JSON.stringify({ rows }),
+      }),
   },
 };

@@ -25,4 +25,12 @@ export const qk = {
   planner: {
     all: ["planner"] as const,
   },
+  resources: {
+    all: ["resources"] as const,
+    list: (params: Record<string, unknown>) => ["resources", params] as const,
+  },
+  documents: {
+    all: ["documents"] as const,
+    list: (params: Record<string, unknown>) => ["documents", params] as const,
+  },
 };

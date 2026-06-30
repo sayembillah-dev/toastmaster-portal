@@ -392,6 +392,103 @@ export function serializeEvent(e: LeanEvent): EventDTO {
   };
 }
 
+// ── Club Document ─────────────────────────────────────────────────────────────
+
+import type { DocumentType } from "@/models/ClubDocument";
+
+export type LeanClubDocument = {
+  _id: unknown;
+  type: DocumentType;
+  title: string;
+  fileUrl: string;
+  filePublicId: string;
+  originalFilename: string;
+  mimeType: string;
+  url: string;
+  description: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type ClubDocumentDTO = {
+  id: string;
+  type: DocumentType;
+  title: string;
+  fileUrl: string;
+  originalFilename: string;
+  mimeType: string;
+  url: string;
+  description: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PaginatedClubDocumentsDTO = {
+  data: ClubDocumentDTO[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+export function serializeClubDocument(d: LeanClubDocument): ClubDocumentDTO {
+  return {
+    id:               String(d._id),
+    type:             d.type,
+    title:            d.title,
+    fileUrl:          d.fileUrl ?? "",
+    originalFilename: d.originalFilename ?? "",
+    mimeType:         d.mimeType ?? "",
+    url:              d.url ?? "",
+    description:      d.description ?? "",
+    content:          d.content ?? "",
+    createdAt:        d.createdAt instanceof Date ? d.createdAt.toISOString() : String(d.createdAt),
+    updatedAt:        d.updatedAt instanceof Date ? d.updatedAt.toISOString() : String(d.updatedAt),
+  };
+}
+
+// ── Club Resource ─────────────────────────────────────────────────────────────
+
+export type LeanClubResource = {
+  _id: unknown;
+  title: string;
+  imageUrl: string;
+  imagePublicId: string;
+  originalFilename: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type ClubResourceDTO = {
+  id: string;
+  title: string;
+  imageUrl: string;
+  originalFilename: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PaginatedClubResourcesDTO = {
+  data: ClubResourceDTO[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+export function serializeClubResource(r: LeanClubResource): ClubResourceDTO {
+  return {
+    id: String(r._id),
+    title: r.title,
+    imageUrl: r.imageUrl ?? "",
+    originalFilename: r.originalFilename ?? "",
+    createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+    updatedAt: r.updatedAt instanceof Date ? r.updatedAt.toISOString() : String(r.updatedAt),
+  };
+}
+
 // ── Planner ───────────────────────────────────────────────────────────────────
 
 export type LeanPlannerRow = {

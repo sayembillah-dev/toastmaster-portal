@@ -41,3 +41,14 @@ export function useDeletePlannerRow() {
     },
   });
 }
+
+export function useBulkCreatePlannerRows() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (rows: import("@/lib/validation").PlannerRowInput[]) =>
+      api.planner.bulkCreate(rows),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.planner.all });
+    },
+  });
+}

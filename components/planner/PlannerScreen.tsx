@@ -1,12 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Upload, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { usePlanner, useCreatePlannerRow, useUpdatePlannerRow, useDeletePlannerRow } from "@/hooks/usePlanner";
 import { MemberCombobox } from "@/components/events/MemberCombobox";
+import { PlannerImportDialog } from "@/components/planner/PlannerImportDialog";
+import { downloadPlannerTemplate } from "@/lib/plannerExcel";
 import { toast } from "sonner";
 import type { PlannerRowDTO } from "@/lib/serializers";
 import type { PlannerRowUpdateInput } from "@/lib/validation";
@@ -183,6 +185,7 @@ function PlannerRow({ row, status }: { row: PlannerRowDTO; status: RowStatus }) 
 export function PlannerScreen() {
   const { data: rows = [], isLoading } = usePlanner();
   const createRow = useCreatePlannerRow();
+  const [importOpen, setImportOpen] = useState(false);
 
   const today = todayStr();
 
@@ -224,11 +227,30 @@ export function PlannerScreen() {
           <h1 className="text-xl font-semibold tracking-tight">Planner</h1>
           <p className="text-sm text-muted-foreground">Role assignments for upcoming meetings</p>
         </div>
-        <Button onClick={addRow} disabled={createRow.isPending} size="sm">
-          <Plus className="h-4 w-4 mr-1.5" />
-          Add Row
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              try { downloadPlannerTemplate(); }
+              catch { toast.error("Failed to generate template"); }
+            }}
+          >
+            <Download className="h-4 w-4 mr-1.5" />
+            Template
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+            <Upload className="h-4 w-4 mr-1.5" />
+            Import
+          </Button>
+          <Button onClick={addRow} disabled={createRow.isPending} size="sm">
+            <Plus className="h-4 w-4 mr-1.5" />
+            Add Row
+          </Button>
+        </div>
       </div>
+
+      <PlannerImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
       {/* Legend */}
       <div className="flex items-center gap-4 px-6 py-2 border-b text-xs text-muted-foreground shrink-0">

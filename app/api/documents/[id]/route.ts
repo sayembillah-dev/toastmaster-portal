@@ -2,7 +2,7 @@ import { dbConnect } from "@/lib/db";
 import { requireSession } from "@/lib/serverAuth";
 import { ClubDocument } from "@/models/ClubDocument";
 import { jsonOk, jsonNotFound, jsonServerError } from "@/lib/apiHelpers";
-import { deleteFile } from "@/lib/localUpload";
+import { deleteFile } from "@/lib/cloudinaryUpload";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -16,7 +16,7 @@ export async function DELETE(_req: Request, { params }: Params) {
     const doc = await ClubDocument.findById(id);
     if (!doc) return jsonNotFound("Document not found");
 
-    if (doc.fileUrl) await deleteFile(doc.fileUrl);
+    if (doc.filePublicId || doc.fileUrl) await deleteFile(doc.filePublicId || doc.fileUrl);
 
     await doc.deleteOne();
     return jsonOk({ ok: true });

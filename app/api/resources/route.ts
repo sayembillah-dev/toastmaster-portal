@@ -3,7 +3,7 @@ import { requireSession } from "@/lib/serverAuth";
 import { ClubResource } from "@/models/ClubResource";
 import { serializeClubResource, type LeanClubResource } from "@/lib/serializers";
 import { jsonOk, jsonBadRequest, jsonServerError } from "@/lib/apiHelpers";
-import { saveFile } from "@/lib/localUpload";
+import { saveFile } from "@/lib/cloudinaryUpload";
 
 const PAGE_SIZE = 12;
 
@@ -53,12 +53,12 @@ export async function POST(req: Request) {
     if (!title) return jsonBadRequest("Title is required");
     if (!file)  return jsonBadRequest("Image file is required");
 
-    const { publicUrl, originalFilename } = await saveFile("resources", file);
+    const { publicUrl, publicId, originalFilename } = await saveFile("resources", file);
 
     const doc = await ClubResource.create({
       title,
       imageUrl:         publicUrl,
-      imagePublicId:    publicUrl,
+      imagePublicId:    publicId,
       originalFilename,
     });
 

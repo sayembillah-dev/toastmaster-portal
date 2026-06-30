@@ -3,7 +3,7 @@ import { requireSession } from "@/lib/serverAuth";
 import { ClubDocument } from "@/models/ClubDocument";
 import { serializeClubDocument, type LeanClubDocument } from "@/lib/serializers";
 import { jsonOk, jsonBadRequest, jsonServerError } from "@/lib/apiHelpers";
-import { saveFile } from "@/lib/localUpload";
+import { saveFile } from "@/lib/cloudinaryUpload";
 
 const PAGE_SIZE = 15;
 
@@ -59,13 +59,13 @@ export async function POST(req: Request) {
       if (!title) return jsonBadRequest("Title is required");
       if (!file)  return jsonBadRequest("File is required");
 
-      const { publicUrl, originalFilename } = await saveFile("documents", file);
+      const { publicUrl, publicId, originalFilename } = await saveFile("documents", file);
 
       const doc = await ClubDocument.create({
         type:             "file",
         title,
         fileUrl:          publicUrl,
-        filePublicId:     publicUrl,
+        filePublicId:     publicId,
         originalFilename,
         mimeType:         file.type,
       });

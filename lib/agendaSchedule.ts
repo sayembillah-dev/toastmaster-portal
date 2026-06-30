@@ -101,7 +101,7 @@ export function buildAgendaSchedule(event: EventDTO): AgendaRow[] {
     duration: AGENDA_DURATIONS.tmoeIntroGe,
     bold: true,
     subRows: [
-      { label: "Ah Counter" },
+      { label: "Ah Counter", person: roles.ahCounter },
       { label: "Timer", person: roles.timer },
       { label: "Grammarian", person: roles.grammarian },
     ],
@@ -173,7 +173,7 @@ export function buildAgendaSchedule(event: EventDTO): AgendaRow[] {
     subRows: [
       { label: "Prepared Speech Evaluations", person: speakers[0]?.evaluatorName || undefined, duration: AGENDA_DURATIONS.psSpeechEvaluations },
       { label: "Table Topic Speech Evaluations", person: roles.tableTopicEvaluator, duration: AGENDA_DURATIONS.ttSpeechEvaluations },
-      { label: "Ah Counter's Report", duration: AGENDA_DURATIONS.ahCounterReport },
+      { label: "Ah Counter's Report", person: roles.ahCounter, duration: AGENDA_DURATIONS.ahCounterReport },
       { label: "Timer's Reports", person: roles.timer, duration: AGENDA_DURATIONS.timerReport },
       { label: "Grammarian's Report", person: roles.grammarian, duration: AGENDA_DURATIONS.grammarianReport },
     ],

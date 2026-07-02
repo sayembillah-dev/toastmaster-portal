@@ -7,7 +7,7 @@ const COOKIE_NAME = process.env.JWT_COOKIE_NAME ?? "ntc_session";
 // Pages that redirect to /members when already signed in
 const AUTH_PAGES = ["/login"];
 // Pages always accessible without auth (exact or prefix matches below)
-const PUBLIC_PAGES = ["/", "/join", "/meetings"];
+const PUBLIC_PAGES = ["/", "/join", "/meetings", "/offline", "/manifest.webmanifest"];
 const PUBLIC_PAGE_PREFIXES = ["/meetings/"];
 const PUBLIC_API_PREFIXES = ["/api/auth/", "/api/public/"];
 

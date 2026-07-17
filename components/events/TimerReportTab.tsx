@@ -65,17 +65,21 @@ function getFlag(elapsed: number, flags: ReturnType<typeof getFlagTimes>): FlagC
   return "none";
 }
 
-function buildInitialEntries(form: EventFormState): TimerEntryDTO[] {
-  const base = { elapsed: 0, status: "idle" as TimerStatus };
-  const out: TimerEntryDTO[] = [];
+// Agenda-linked timer entries use deterministic ids (prefixed "agenda-") so they can be
+// reconciled against the current agenda on every change, instead of only being seeded once.
+// Manually added entries (uid()-based ids) are never touched by this sync.
+type AgendaEntry = { id: string; label: string; category: TimerCategory; speakerIndex?: number };
+
+function buildAgendaEntries(form: EventFormState): AgendaEntry[] {
+  const out: AgendaEntry[] = [];
   form.speakers.forEach((s, i) => {
-    if (s.name)          out.push({ id: uid(), label: s.name,          category: "preparedSpeaker",   speakerIndex: i, ...base });
+    if (s.name)          out.push({ id: `agenda-speaker-${i}`,   label: s.name,          category: "preparedSpeaker",   speakerIndex: i });
   });
   form.speakers.forEach((s, i) => {
-    if (s.evaluatorName) out.push({ id: uid(), label: s.evaluatorName, category: "preparedEvaluator", speakerIndex: i, ...base });
+    if (s.evaluatorName) out.push({ id: `agenda-evaluator-${i}`, label: s.evaluatorName, category: "preparedEvaluator", speakerIndex: i });
   });
-  if (form.roles.tableTopicEvaluator) out.push({ id: uid(), label: form.roles.tableTopicEvaluator, category: "tableTopicEvaluator", ...base });
-  if (form.roles.generalEvaluator)    out.push({ id: uid(), label: form.roles.generalEvaluator,    category: "generalEvaluator",    ...base });
+  if (form.roles.tableTopicEvaluator) out.push({ id: "agenda-tt-evaluator",      label: form.roles.tableTopicEvaluator, category: "tableTopicEvaluator" });
+  if (form.roles.generalEvaluator)    out.push({ id: "agenda-general-evaluator", label: form.roles.generalEvaluator,    category: "generalEvaluator" });
   return out;
 }
 
@@ -589,11 +593,50 @@ export function TimerReportTab({ form, update }: Props) {
     if (initializedRef.current) return;
     initializedRef.current = true;
     const saved = form.timerEntries ?? [];
-    const initial = saved.length > 0 ? saved : buildInitialEntries(form);
-    entriesRef.current = initial;
-    setEntries(initial);
-    if (initial.length > 0) setSelectedId(initial[0].id);
+    entriesRef.current = saved;
+    setEntries(saved);
+    if (saved.length > 0) setSelectedId(saved[0].id);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep agenda-linked entries (speakers, their evaluators, TT/general evaluator roles) in sync:
+  // add entries for newly added people, remove entries for people no longer on the agenda, and
+  // rename entries when an agenda name changes. Manually added entries are left untouched.
+  const agendaKey = JSON.stringify(buildAgendaEntries(form).map((e) => [e.id, e.label]));
+  useEffect(() => {
+    const desired = buildAgendaEntries(form);
+    const desiredById = new Map(desired.map((d) => [d.id, d]));
+    const current = entriesRef.current;
+    const removedIds = new Set<string>();
+    let changed = false;
+
+    let next = current.filter((e) => {
+      if (!e.id.startsWith("agenda-") || desiredById.has(e.id)) return true;
+      removedIds.add(e.id);
+      changed = true;
+      return false;
+    });
+
+    next = next.map((e) => {
+      const d = desiredById.get(e.id);
+      if (d && d.label !== e.label) { changed = true; return { ...e, label: d.label }; }
+      return e;
+    });
+
+    desired.forEach((d) => {
+      if (next.some((e) => e.id === d.id)) return;
+      changed = true;
+      next = [...next, { id: d.id, label: d.label, category: d.category, speakerIndex: d.speakerIndex, elapsed: 0, status: "idle" }];
+    });
+
+    if (!changed) return;
+
+    if (runningId && removedIds.has(runningId)) { setRunningId(null); setStartedAt(null); }
+    if (selectedId && removedIds.has(selectedId)) setSelectedId(next[0]?.id ?? null);
+    else if (!selectedId && next.length > 0) setSelectedId(next[0].id);
+
+    persist(next, true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agendaKey]);
 
   useEffect(() => {
     if (runningId !== null && startedAt !== null) {

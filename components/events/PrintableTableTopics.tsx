@@ -1,9 +1,11 @@
 "use client";
 
-import { Printer } from "lucide-react";
+import { useRef, useState } from "react";
+import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EventDTO } from "@/lib/serializers";
 import { CLUB_INFO } from "@/lib/eventConstants";
+import { downloadElementAsPdf } from "@/lib/downloadPdf";
 
 type Props = { event: EventDTO };
 
@@ -17,22 +19,40 @@ function formatShortDate(iso: string) {
 
 export function PrintableTableTopics({ event }: Props) {
   const questions = event.tableTopicQuestions.filter((q) => q.text);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!pageRef.current || downloading) return;
+    setDownloading(true);
+    try {
+      const suffix = event.meetingNumber > 0
+        ? `Meeting-${event.meetingNumber}`
+        : formatShortDate(event.date);
+      await downloadElementAsPdf(pageRef.current, `Table-Topics-${suffix}.pdf`);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Print button — hidden when printing */}
+      {/* Download button — hidden when printing */}
       <div className="print-hidden flex items-center gap-3 p-4 border-b bg-muted/40">
-        <Button onClick={() => window.print()} className="gap-2">
-          <Printer className="h-4 w-4" />
-          Print / Save as PDF
+        <Button onClick={handleDownload} disabled={downloading} className="gap-2">
+          {downloading
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : <Download className="h-4 w-4" />}
+          {downloading ? "Preparing PDF…" : "Download PDF"}
         </Button>
         <p className="text-sm text-muted-foreground">
-          Use your browser's print dialog → <strong>Save as PDF</strong> → set paper to <strong>A4</strong>
+          Downloads the questions as an <strong>A4</strong> PDF file
         </p>
       </div>
 
       {/* A4 Page */}
       <div
+        ref={pageRef}
         className="tt-page mx-auto bg-white"
         style={{ width: "210mm", minHeight: "297mm", fontFamily: "Arial, sans-serif", padding: "0 0 16px 0" }}
       >

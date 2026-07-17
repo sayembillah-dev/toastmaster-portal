@@ -229,8 +229,11 @@ export function AhCounterTab({ form, update }: Props) {
   const initialised   = useRef(false);
 
   useEffect(() => {
-    const existingIds = new Set(form.ahCounterReport.map((e) => e.timerId));
-    const missing     = form.timerEntries.filter((t) => !existingIds.has(t.id));
+    const currentTimerIds = new Set(form.timerEntries.map((t) => t.id));
+    const existingIds     = new Set(form.ahCounterReport.map((e) => e.timerId));
+    const missing         = form.timerEntries.filter((t) => !existingIds.has(t.id));
+    // Entries manually added here use a "manual-" id unrelated to any timer entry — never prune those.
+    const orphaned        = form.ahCounterReport.filter((e) => !e.timerId.startsWith("manual-") && !currentTimerIds.has(e.timerId));
 
     // On first mount, open all existing + incoming entries
     if (!initialised.current) {
@@ -244,7 +247,7 @@ export function AhCounterTab({ form, update }: Props) {
 
     if (prevIdsRef.current === timerIdsKey) return;
     prevIdsRef.current = timerIdsKey;
-    if (missing.length === 0) return;
+    if (missing.length === 0 && orphaned.length === 0) return;
 
     const words      = form.fillerWords.length > 0 ? form.fillerWords : DEFAULT_FILLER_WORDS;
     const newEntries = missing.map((t): AhCounterEntryDTO => ({
@@ -252,9 +255,16 @@ export function AhCounterTab({ form, update }: Props) {
       name:    t.label,
       counts:  words.map((w) => ({ word: w, count: 0 })),
     }));
-    // Open newly auto-added entries
-    setOpenIds((prev) => { const next = new Set(prev); missing.forEach((t) => next.add(t.id)); return next; });
-    update({ ahCounterReport: [...form.ahCounterReport, ...newEntries] }, true);
+    const orphanedIds = new Set(orphaned.map((e) => e.timerId));
+    const kept        = form.ahCounterReport.filter((e) => !orphanedIds.has(e.timerId));
+
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      orphaned.forEach((e) => next.delete(e.timerId));
+      missing.forEach((t) => next.add(t.id));
+      return next;
+    });
+    update({ ahCounterReport: [...kept, ...newEntries] }, true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timerIdsKey]);
 

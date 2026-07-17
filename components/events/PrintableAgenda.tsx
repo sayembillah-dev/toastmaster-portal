@@ -1,10 +1,12 @@
 "use client";
 
-import { Printer } from "lucide-react";
+import { useRef, useState } from "react";
+import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EventDTO } from "@/lib/serializers";
 import { buildAgendaSchedule, type AgendaRow } from "@/lib/agendaSchedule";
 import { CLUB_INFO } from "@/lib/eventConstants";
+import { downloadElementAsPdf } from "@/lib/downloadPdf";
 
 type Props = { event: EventDTO };
 
@@ -101,6 +103,21 @@ function AgendaRowItem({ row }: { row: AgendaRow }) {
 export function PrintableAgenda({ event }: Props) {
   const schedule = buildAgendaSchedule(event);
   const { roles, speakers, wordOfDay } = event;
+  const pageRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!pageRef.current || downloading) return;
+    setDownloading(true);
+    try {
+      const suffix = event.meetingNumber > 0
+        ? `Meeting-${event.meetingNumber}`
+        : formatShortDate(event.date);
+      await downloadElementAsPdf(pageRef.current, `Agenda-${suffix}.pdf`);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const sidebarRoles = [
     { label: "President", value: roles.president },
@@ -127,18 +144,21 @@ export function PrintableAgenda({ event }: Props) {
         alignItems: "center",
         gap: 16,
       }}>
-        <Button onClick={() => window.print()} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Printer style={{ width: 16, height: 16 }} />
-          Print / Save as PDF
+        <Button onClick={handleDownload} disabled={downloading} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {downloading
+            ? <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+            : <Download style={{ width: 16, height: 16 }} />}
+          {downloading ? "Preparing PDF…" : "Download PDF"}
         </Button>
         <span style={{ fontSize: 13, color: "#6b7280" }}>
-          In print dialog → Paper: <strong>A4</strong> · Margins: <strong>Minimum</strong> · Scale: <strong>100%</strong>
+          Downloads the agenda as an <strong>A4</strong> PDF file
         </span>
       </div>
 
       {/* A4 page preview on screen */}
       <div className="agenda-print-wrap" style={{ padding: "24px 0 40px" }}>
         <div
+          ref={pageRef}
           className="agenda-page"
           style={{
             width: "210mm",

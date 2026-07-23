@@ -4,6 +4,7 @@ export const DOCUMENT_TYPES = ["file", "link", "text"] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
 export interface IClubDocument extends Document {
+  clubId: mongoose.Types.ObjectId;
   type: DocumentType;
   title: string;
   // file
@@ -22,6 +23,7 @@ export interface IClubDocument extends Document {
 
 const ClubDocumentSchema = new Schema<IClubDocument>(
   {
+    clubId:           { type: Schema.Types.ObjectId, ref: "Club", required: true },
     type:             { type: String, enum: DOCUMENT_TYPES, required: true },
     title:            { type: String, required: true, trim: true },
     fileUrl:          { type: String, default: "" },
@@ -35,8 +37,8 @@ const ClubDocumentSchema = new Schema<IClubDocument>(
   { timestamps: true },
 );
 
-ClubDocumentSchema.index({ title: "text" });
-ClubDocumentSchema.index({ createdAt: -1 });
+ClubDocumentSchema.index({ clubId: 1, title: "text" });
+ClubDocumentSchema.index({ clubId: 1, createdAt: -1 });
 
 export const ClubDocument =
   mongoose.models.ClubDocument ?? mongoose.model<IClubDocument>("ClubDocument", ClubDocumentSchema);

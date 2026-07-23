@@ -57,6 +57,7 @@ interface ITimerEntry {
 }
 
 interface IEvent extends Document {
+  clubId: mongoose.Types.ObjectId;
   fillerWords: string[];
   ahCounterReport: IAhCounterEntry[];
   title: string;
@@ -65,6 +66,7 @@ interface IEvent extends Document {
   startTime: string;
   theme: string;
   venue: string;
+  venueCoordinates?: { lat: number; lng: number };
   isTemplate: boolean;
   templateName: string;
   roles: Record<AgendaRoleKey, string>;
@@ -160,12 +162,17 @@ const WordOfDaySchema = new Schema<IWordOfDay>(
 
 const EventSchema = new Schema<IEvent>(
   {
+    clubId:       { type: Schema.Types.ObjectId, ref: "Club", required: true },
     title: { type: String, trim: true, maxlength: 200, default: "" },
     meetingNumber: { type: Number, default: 0 },
     date: { type: Date, required: true },
     startTime: { type: String, trim: true, maxlength: 5, default: "18:00" },
     theme: { type: String, trim: true, maxlength: 200, default: "" },
     venue: { type: String, trim: true, maxlength: 200, default: "" },
+    venueCoordinates: {
+      lat: { type: Number },
+      lng: { type: Number },
+    },
     isTemplate: { type: Boolean, default: false },
     templateName: { type: String, trim: true, maxlength: 100, default: "" },
     roles: {
@@ -192,9 +199,9 @@ const EventSchema = new Schema<IEvent>(
   { timestamps: true },
 );
 
-EventSchema.index({ date: -1 });
-EventSchema.index({ isTemplate: 1 });
-EventSchema.index({ meetingNumber: 1 });
+EventSchema.index({ clubId: 1, date: -1 });
+EventSchema.index({ clubId: 1, isTemplate: 1 });
+EventSchema.index({ clubId: 1, meetingNumber: 1 });
 
 // In dev, HMR re-evaluates modules but Mongoose caches the old model on the connection.
 // Delete the stale model so schema changes (like this one) take effect without a full restart.

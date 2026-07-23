@@ -5,6 +5,7 @@ export { TRANSACTION_TYPES, ALL_CATEGORIES };
 export type { TransactionType, TransactionCategory };
 
 export interface ITransaction extends Document {
+  clubId: mongoose.Types.ObjectId;
   type: TransactionType;
   category: TransactionCategory;
   amount: number;
@@ -19,21 +20,22 @@ export interface ITransaction extends Document {
 
 const TransactionSchema = new Schema<ITransaction>(
   {
-    type: { type: String, enum: TRANSACTION_TYPES, required: true },
-    category: { type: String, enum: ALL_CATEGORIES, required: true },
-    amount: { type: Number, required: true, min: 0.01 },
+    clubId:      { type: Schema.Types.ObjectId, ref: "Club", required: true },
+    type:        { type: String, enum: TRANSACTION_TYPES, required: true },
+    category:    { type: String, enum: ALL_CATEGORIES, required: true },
+    amount:      { type: Number, required: true, min: 0.01 },
     description: { type: String, trim: true, default: "", maxlength: 500 },
-    date: { type: Date, required: true },
-    memberId: { type: Schema.Types.ObjectId, ref: "Member" },
-    memberName: { type: String, trim: true, default: "" },
-    receiptUrl: { type: String, default: "" },
+    date:        { type: Date, required: true },
+    memberId:    { type: Schema.Types.ObjectId, ref: "Member" },
+    memberName:  { type: String, trim: true, default: "" },
+    receiptUrl:  { type: String, default: "" },
   },
   { timestamps: true },
 );
 
-TransactionSchema.index({ date: -1 });
-TransactionSchema.index({ type: 1 });
-TransactionSchema.index({ memberId: 1 });
+TransactionSchema.index({ clubId: 1, date: -1 });
+TransactionSchema.index({ clubId: 1, type: 1 });
+TransactionSchema.index({ clubId: 1, memberId: 1 });
 
 export const Transaction =
   mongoose.models.Transaction ?? mongoose.model<ITransaction>("Transaction", TransactionSchema);

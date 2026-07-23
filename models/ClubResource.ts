@@ -1,6 +1,7 @@
 import mongoose, { Schema, type Document } from "mongoose";
 
 export interface IClubResource extends Document {
+  clubId: mongoose.Types.ObjectId;
   title: string;
   imageUrl: string;
   imagePublicId: string;
@@ -11,16 +12,17 @@ export interface IClubResource extends Document {
 
 const ClubResourceSchema = new Schema<IClubResource>(
   {
-    title: { type: String, required: true, trim: true },
-    imageUrl: { type: String, required: true },
-    imagePublicId: { type: String, required: true },
+    clubId:           { type: Schema.Types.ObjectId, ref: "Club", required: true },
+    title:            { type: String, required: true, trim: true },
+    imageUrl:         { type: String, required: true },
+    imagePublicId:    { type: String, required: true },
     originalFilename: { type: String, default: "" },
   },
   { timestamps: true },
 );
 
-ClubResourceSchema.index({ title: "text" });
-ClubResourceSchema.index({ createdAt: -1 });
+ClubResourceSchema.index({ clubId: 1, title: "text" });
+ClubResourceSchema.index({ clubId: 1, createdAt: -1 });
 
 export const ClubResource =
   mongoose.models.ClubResource ?? mongoose.model<IClubResource>("ClubResource", ClubResourceSchema);

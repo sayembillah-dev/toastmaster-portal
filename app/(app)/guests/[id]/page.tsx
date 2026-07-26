@@ -123,12 +123,29 @@ export default function GuestProfilePage({ params }: Props) {
         />
       </div>
 
-      {guest.details && (
+      {guest.bio && (
         <>
           <Separator />
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-2">About</h3>
-            <p className="text-sm whitespace-pre-wrap">{guest.details}</p>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Bio</h3>
+            <p className="text-sm whitespace-pre-wrap">{guest.bio}</p>
+          </div>
+        </>
+      )}
+
+      {guest.linkedinUrl && (
+        <>
+          <Separator />
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-2">LinkedIn</h3>
+            <a
+              href={guest.linkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              {guest.linkedinUrl}
+            </a>
           </div>
         </>
       )}

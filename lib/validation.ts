@@ -15,6 +15,7 @@ export const memberSchema = z.object({
   clubRole: z.enum(CLUB_ROLES),
   paymentStatus: z.enum(MEMBER_PAYMENT_STATUSES).default("unpaid"),
   bio: z.string().max(1000).trim().optional().or(z.literal("")),
+  linkedinUrl: z.string().max(300).trim().optional().or(z.literal("")),
 });
 
 export const memberUpdateSchema = memberSchema.partial();
@@ -28,7 +29,8 @@ export const guestSchema = z.object({
   phone: z.string().max(20).trim().optional().or(z.literal("")),
   whatsapp: z.string().max(20).trim().optional().or(z.literal("")),
   whatsappSameAsPhone: z.boolean(),
-  details: z.string().max(2000).trim().optional().or(z.literal("")),
+  bio: z.string().max(2000).trim().optional().or(z.literal("")),
+  linkedinUrl: z.string().max(300).trim().optional().or(z.literal("")),
   preferredRole: z.string().max(80).trim().optional().or(z.literal("")),
   visitDate: z.string().min(1, "Visit date is required"),
   followUpStatus: z.enum(FOLLOW_UP_STATUSES),

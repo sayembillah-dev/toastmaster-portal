@@ -17,7 +17,8 @@ const publicGuestSchema = z.object({
   phone: z.string().max(20).trim().optional().or(z.literal("")),
   whatsapp: z.string().max(20).trim().optional().or(z.literal("")),
   whatsappSameAsPhone: z.preprocess((v) => v === "true" || v === true, z.boolean()),
-  details: z.string().max(2000).trim().optional().or(z.literal("")),
+  bio: z.string().max(2000).trim().optional().or(z.literal("")),
+  linkedinUrl: z.string().max(300).trim().optional().or(z.literal("")),
   preferredRole: z.string().max(80).trim().optional().or(z.literal("")),
 });
 

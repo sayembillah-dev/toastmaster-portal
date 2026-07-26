@@ -22,6 +22,7 @@ export type LeanMember = {
   paymentStatus?: MemberPaymentStatus;
   joinDate: Date;
   bio: string;
+  linkedinUrl?: string;
   photoUrl: string;
   photoPublicId: string;
   activityLog?: { type?: ActivityLogType; message?: string; relatedEventId?: string; occurredAt?: Date }[];
@@ -41,6 +42,7 @@ export type MemberDTO = {
   paymentStatus: MemberPaymentStatus;
   joinDate: string;
   bio: string;
+  linkedinUrl: string;
   photoUrl: string;
   activityLog: ActivityLogEntryDTO[];
   convertedFromGuestId: string;
@@ -60,6 +62,7 @@ export function serializeMember(m: LeanMember): MemberDTO {
     paymentStatus: m.paymentStatus ?? "unpaid",
     joinDate: m.joinDate instanceof Date ? m.joinDate.toISOString() : String(m.joinDate),
     bio: m.bio ?? "",
+    linkedinUrl: m.linkedinUrl ?? "",
     photoUrl: m.photoUrl ?? "",
     activityLog: (m.activityLog ?? [])
       .map((a) => ({
@@ -97,7 +100,8 @@ export type LeanGuest = {
   phone: string;
   whatsapp: string;
   whatsappSameAsPhone: boolean;
-  details: string;
+  bio: string;
+  linkedinUrl?: string;
   preferredRole?: string;
   visitDate: Date;
   followUpStatus: FollowUpStatus;
@@ -120,7 +124,8 @@ export type GuestDTO = {
   phone: string;
   whatsapp: string;
   whatsappSameAsPhone: boolean;
-  details: string;
+  bio: string;
+  linkedinUrl: string;
   preferredRole: string;
   visitDate: string;
   followUpStatus: FollowUpStatus;
@@ -143,7 +148,8 @@ export function serializeGuest(g: LeanGuest): GuestDTO {
     phone: g.phone ?? "",
     whatsapp: g.whatsapp ?? "",
     whatsappSameAsPhone: g.whatsappSameAsPhone ?? true,
-    details: g.details ?? "",
+    bio: g.bio ?? "",
+    linkedinUrl: g.linkedinUrl ?? "",
     preferredRole: g.preferredRole ?? "",
     visitDate: g.visitDate instanceof Date ? g.visitDate.toISOString() : String(g.visitDate),
     followUpStatus: g.followUpStatus,

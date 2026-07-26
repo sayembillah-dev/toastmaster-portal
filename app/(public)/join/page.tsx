@@ -15,7 +15,8 @@ type FormState = {
   phone: string;
   whatsapp: string;
   whatsappSameAsPhone: boolean;
-  details: string;
+  bio: string;
+  linkedinUrl: string;
   preferredRole: string;
 };
 
@@ -25,7 +26,8 @@ const EMPTY: FormState = {
   phone: "",
   whatsapp: "",
   whatsappSameAsPhone: true,
-  details: "",
+  bio: "",
+  linkedinUrl: "",
   preferredRole: "",
 };
 
@@ -75,7 +77,8 @@ export default function JoinPage() {
       fd.append("phone", form.phone);
       fd.append("whatsapp", form.whatsappSameAsPhone ? form.phone : form.whatsapp);
       fd.append("whatsappSameAsPhone", String(form.whatsappSameAsPhone));
-      fd.append("details", form.details);
+      fd.append("bio", form.bio);
+      fd.append("linkedinUrl", form.linkedinUrl);
       fd.append("preferredRole", form.preferredRole);
       if (photoFile) fd.append("photo", photoFile);
 
@@ -235,16 +238,30 @@ export default function JoinPage() {
                 </select>
               </div>
 
-              {/* About */}
+              {/* Bio */}
               <div className="space-y-1.5">
-                <Label htmlFor="details">About yourself</Label>
+                <Label htmlFor="bio">Bio</Label>
                 <Textarea
-                  id="details"
-                  value={form.details}
-                  onChange={(e) => set("details", e.target.value)}
+                  id="bio"
+                  value={form.bio}
+                  onChange={(e) => set("bio", e.target.value)}
                   placeholder="Tell us a bit about yourself — your profession, how you heard about us, what you're hoping to gain…"
                   rows={4}
                   maxLength={2000}
+                />
+              </div>
+
+              {/* LinkedIn */}
+              <div className="space-y-1.5">
+                <Label htmlFor="linkedinUrl">
+                  LinkedIn profile URL <span className="text-xs text-muted-foreground">(optional)</span>
+                </Label>
+                <Input
+                  id="linkedinUrl"
+                  type="url"
+                  value={form.linkedinUrl}
+                  onChange={(e) => set("linkedinUrl", e.target.value)}
+                  placeholder="https://www.linkedin.com/in/username"
                 />
               </div>
 

@@ -132,6 +132,23 @@ export default function MemberProfilePage({ params }: Props) {
         </>
       )}
 
+      {member.linkedinUrl && (
+        <>
+          <Separator />
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-2">LinkedIn</h3>
+            <a
+              href={member.linkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              {member.linkedinUrl}
+            </a>
+          </div>
+        </>
+      )}
+
       {member.convertedFromGuestId && (
         <>
           <Separator />

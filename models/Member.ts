@@ -21,6 +21,7 @@ export interface IMember extends Document {
   paymentStatus: MemberPaymentStatus;
   joinDate: Date;
   bio: string;
+  linkedinUrl: string;
   photoUrl: string;
   photoPublicId: string;
   activityLog: IActivityLogEntry[];
@@ -50,6 +51,7 @@ const MemberSchema = new Schema<IMember>(
     paymentStatus: { type: String, enum: MEMBER_PAYMENT_STATUSES, default: "unpaid" },
     joinDate: { type: Date, required: true },
     bio: { type: String, trim: true, default: "", maxlength: 1000 },
+    linkedinUrl: { type: String, trim: true, default: "", maxlength: 300 },
     photoUrl: { type: String, default: "" },
     photoPublicId: { type: String, default: "" },
     activityLog: { type: [ActivityLogSchema], default: [] },

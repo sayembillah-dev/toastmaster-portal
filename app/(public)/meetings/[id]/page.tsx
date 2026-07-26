@@ -2,20 +2,122 @@
 
 import { use, useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock, MapPin, CheckCircle2, Loader2, User, Camera } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, MapPin, CheckCircle2, Loader2, User, Camera, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { MemberAvatar } from "@/components/shared/Avatar";
 import { buildAgendaSchedule } from "@/lib/agendaSchedule";
-import { AGENDA_ROLE_LABELS } from "@/lib/eventConstants";
+import { AGENDA_ROLE_LABELS, type AgendaRoleKey } from "@/lib/eventConstants";
 import { GUEST_PREFERRED_ROLES } from "@/lib/guestConstants";
 import type { EventDTO } from "@/lib/serializers";
 
-type PublicEvent = Omit<EventDTO, "attendees">;
+type MentorInfo = { bio: string; linkedinUrl: string; photoUrl: string };
+type PublicEvent = Omit<EventDTO, "attendees"> & { mentors?: Record<string, MentorInfo> };
 
 type Props = { params: Promise<{ id: string }> };
+
+// Roles a guest should get to meet in advance — pulled out of the agenda into their own spotlight.
+const MENTOR_ROLE_KEYS: AgendaRoleKey[] = ["toastmaster", "generalEvaluator", "tableTopicMaster", "tableTopicEvaluator"];
+const BIO_PREVIEW_LENGTH = 160;
+
+function lookupMentor(event: PublicEvent, name: string): MentorInfo {
+  const match = event.mentors?.[name.trim().toLowerCase()];
+  return match ?? { bio: "", linkedinUrl: "", photoUrl: "" };
+}
+
+// Simple inline LinkedIn mark — lucide-react doesn't ship brand icons.
+function LinkedInIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.11 20.45H3.56V9h3.55v11.45z" />
+    </svg>
+  );
+}
+
+function MentorCard({ roleLabel, name, info }: { roleLabel: string; name: string; info: MentorInfo }) {
+  const [expanded, setExpanded] = useState(false);
+  const bio = info.bio.trim();
+  const isLong = bio.length > BIO_PREVIEW_LENGTH;
+  const shownBio = expanded || !isLong ? bio : `${bio.slice(0, BIO_PREVIEW_LENGTH).trimEnd()}…`;
+
+  return (
+    <div className="rounded-2xl border border-[#E7DAC6] bg-white p-5 shadow-sm flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <MemberAvatar name={name} photoUrl={info.photoUrl} size="lg" />
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#9E1D06]">{roleLabel}</p>
+          <p className="font-serif text-lg leading-tight text-[#2A201A]">{name}</p>
+        </div>
+      </div>
+
+      {bio && (
+        <div className="text-sm text-[#7B6B5C] whitespace-pre-wrap">
+          {shownBio}
+          {isLong && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="ml-1 inline-flex items-center gap-0.5 text-[#9E1D06] font-medium hover:underline"
+            >
+              {expanded ? (
+                <>See less <ChevronUp className="h-3 w-3" /></>
+              ) : (
+                <>See more <ChevronDown className="h-3 w-3" /></>
+              )}
+            </button>
+          )}
+        </div>
+      )}
+
+      {info.linkedinUrl && (
+        <a
+          href={info.linkedinUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#0A66C2] hover:underline w-fit"
+        >
+          <LinkedInIcon className="h-4 w-4" />
+          View LinkedIn profile
+        </a>
+      )}
+    </div>
+  );
+}
+
+function MeetTheMentors({ event }: { event: PublicEvent }) {
+  const entries: { role: string; name: string }[] = [];
+  for (const key of MENTOR_ROLE_KEYS) {
+    const name = event.roles[key];
+    if (name) entries.push({ role: AGENDA_ROLE_LABELS[key], name });
+  }
+  event.speakers.forEach((s, i) => {
+    if (s.evaluatorName) {
+      entries.push({
+        role: event.speakers.length > 1 ? `Prepared Speech Evaluator — Speech ${i + 1}` : "Prepared Speech Evaluator",
+        name: s.evaluatorName,
+      });
+    }
+  });
+
+  if (entries.length === 0) return null;
+
+  return (
+    <div>
+      <h2 className="font-serif text-2xl text-[#2A201A] mb-1">Meet the Mentors</h2>
+      <p className="text-sm text-[#7B6B5C] mb-4">
+        Here's who's leading today's meeting — say hello when you arrive!
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {entries.map((e, i) => (
+          <MentorCard key={`${e.role}-${i}`} roleLabel={e.role} name={e.name} info={lookupMentor(event, e.name)} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -30,8 +132,8 @@ function fmtTime(t: string) {
 }
 
 // ── Join Form ─────────────────────────────────────────────────────────────────
-type JoinFormState = { fullName: string; email: string; phone: string; details: string; preferredRole: string };
-const EMPTY: JoinFormState = { fullName: "", email: "", phone: "", details: "", preferredRole: "" };
+type JoinFormState = { fullName: string; email: string; phone: string; bio: string; linkedinUrl: string; preferredRole: string };
+const EMPTY: JoinFormState = { fullName: "", email: "", phone: "", bio: "", linkedinUrl: "", preferredRole: "" };
 
 function JoinForm({ eventId }: { eventId: string }) {
   const [form, setForm] = useState<JoinFormState>(EMPTY);
@@ -62,7 +164,8 @@ function JoinForm({ eventId }: { eventId: string }) {
       fd.append("phone", form.phone);
       fd.append("whatsapp", form.phone);
       fd.append("whatsappSameAsPhone", "true");
-      fd.append("details", form.details);
+      fd.append("bio", form.bio);
+      fd.append("linkedinUrl", form.linkedinUrl);
       fd.append("preferredRole", form.preferredRole);
       fd.append("eventId", eventId);
       if (photo) fd.append("photo", photo);
@@ -165,14 +268,25 @@ function JoinForm({ eventId }: { eventId: string }) {
       </div>
 
       <div>
-        <Label htmlFor="jf-details" className="text-sm font-medium text-[#2A201A]">About yourself (optional)</Label>
+        <Label htmlFor="jf-bio" className="text-sm font-medium text-[#2A201A]">Bio (optional)</Label>
         <Textarea
-          id="jf-details"
-          value={form.details}
-          onChange={(e) => set("details", e.target.value)}
+          id="jf-bio"
+          value={form.bio}
+          onChange={(e) => set("bio", e.target.value)}
           placeholder="Profession, how you heard about us…"
           rows={3}
           className="mt-1 resize-none"
+        />
+      </div>
+      <div>
+        <Label htmlFor="jf-linkedin" className="text-sm font-medium text-[#2A201A]">LinkedIn profile URL (optional)</Label>
+        <Input
+          id="jf-linkedin"
+          type="url"
+          value={form.linkedinUrl}
+          onChange={(e) => set("linkedinUrl", e.target.value)}
+          placeholder="https://www.linkedin.com/in/username"
+          className="mt-1"
         />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -192,7 +306,9 @@ function JoinForm({ eventId }: { eventId: string }) {
 function ReadonlyAgenda({ event }: { event: PublicEvent }) {
   const schedule = buildAgendaSchedule(event as EventDTO);
 
-  const filledRoles = Object.entries(event.roles).filter(([, v]) => v);
+  const filledRoles = Object.entries(event.roles).filter(
+    ([k, v]) => v && !MENTOR_ROLE_KEYS.includes(k as AgendaRoleKey),
+  );
 
   return (
     <div className="space-y-6">
@@ -200,7 +316,7 @@ function ReadonlyAgenda({ event }: { event: PublicEvent }) {
       {filledRoles.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-widest text-[#9E1D06] mb-3">
-            Today's Roles
+            Other Roles
           </h3>
           <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
             {filledRoles.map(([key, val]) => (
@@ -385,6 +501,9 @@ export default function PublicMeetingPage({ params }: Props) {
 
       {/* Body */}
       <div className="max-w-4xl mx-auto px-6 py-10 md:px-16 space-y-12">
+        {/* Meet the Mentors */}
+        <MeetTheMentors event={event} />
+
         {/* Agenda */}
         <ReadonlyAgenda event={event} />
 

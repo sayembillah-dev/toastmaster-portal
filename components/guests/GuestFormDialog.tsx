@@ -41,7 +41,8 @@ type FormState = {
   phone: string;
   whatsapp: string;
   whatsappSameAsPhone: boolean;
-  details: string;
+  bio: string;
+  linkedinUrl: string;
   preferredRole: string;
   visitDate: string;
   followUpStatus: FollowUpStatus;
@@ -54,7 +55,8 @@ const EMPTY_FORM: FormState = {
   phone: "",
   whatsapp: "",
   whatsappSameAsPhone: true,
-  details: "",
+  bio: "",
+  linkedinUrl: "",
   preferredRole: "",
   visitDate: new Date().toISOString().split("T")[0],
   followUpStatus: "new",
@@ -79,7 +81,8 @@ export function GuestFormDialog({ open, onOpenChange, mode, guest }: Props) {
           phone: guest.phone,
           whatsapp: guest.whatsapp,
           whatsappSameAsPhone: guest.whatsappSameAsPhone,
-          details: guest.details,
+          bio: guest.bio,
+          linkedinUrl: guest.linkedinUrl ?? "",
           preferredRole: guest.preferredRole ?? "",
           visitDate: guest.visitDate.split("T")[0],
           followUpStatus: guest.followUpStatus,
@@ -297,16 +300,31 @@ export function GuestFormDialog({ open, onOpenChange, mode, guest }: Props) {
             </Select>
           </div>
 
-          {/* Details */}
+          {/* Bio */}
           <div className="space-y-1.5">
-            <Label htmlFor="details">About yourself</Label>
+            <Label htmlFor="bio">Bio</Label>
             <Textarea
-              id="details"
-              value={form.details}
-              onChange={(e) => set("details", e.target.value)}
-              placeholder="Tell us a bit about yourself…"
+              id="bio"
+              value={form.bio}
+              onChange={(e) => set("bio", e.target.value)}
+              placeholder="A short bio…"
               rows={3}
               maxLength={2000}
+            />
+          </div>
+
+          {/* LinkedIn */}
+          <div className="space-y-1.5">
+            <Label htmlFor="linkedinUrl">
+              LinkedIn profile URL
+              <span className="ml-1 text-xs text-muted-foreground">(optional)</span>
+            </Label>
+            <Input
+              id="linkedinUrl"
+              type="url"
+              value={form.linkedinUrl}
+              onChange={(e) => set("linkedinUrl", e.target.value)}
+              placeholder="https://www.linkedin.com/in/username"
             />
           </div>
 

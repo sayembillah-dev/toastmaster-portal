@@ -45,6 +45,7 @@ type FormState = {
   clubRole: ClubRole;
   paymentStatus: MemberPaymentStatus;
   bio: string;
+  linkedinUrl: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -57,6 +58,7 @@ const EMPTY_FORM: FormState = {
   clubRole: "Member",
   paymentStatus: "unpaid",
   bio: "",
+  linkedinUrl: "",
 };
 
 export function MemberFormDialog({ open, onOpenChange, mode, member }: Props) {
@@ -81,6 +83,7 @@ export function MemberFormDialog({ open, onOpenChange, mode, member }: Props) {
           clubRole: member.clubRole,
           paymentStatus: member.paymentStatus,
           bio: member.bio,
+          linkedinUrl: member.linkedinUrl ?? "",
         });
         setPhotoPreview(member.photoUrl || "");
       } else {
@@ -294,6 +297,21 @@ export function MemberFormDialog({ open, onOpenChange, mode, member }: Props) {
               placeholder="A short bio…"
               rows={3}
               maxLength={1000}
+            />
+          </div>
+
+          {/* LinkedIn */}
+          <div className="space-y-1.5">
+            <Label htmlFor="linkedinUrl">
+              LinkedIn profile URL
+              <span className="ml-1 text-xs text-muted-foreground">(optional)</span>
+            </Label>
+            <Input
+              id="linkedinUrl"
+              type="url"
+              value={form.linkedinUrl}
+              onChange={(e) => set("linkedinUrl", e.target.value)}
+              placeholder="https://www.linkedin.com/in/username"
             />
           </div>
 

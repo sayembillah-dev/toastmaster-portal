@@ -24,7 +24,8 @@ export function useAllClubMembersGrouped(clubs: AreaClub[]): {
     const groups: ClubMemberGroup[] = clubs.map((c) => ({
       clubId: c.id,
       clubName: c.name,
-      members: c.isHomeClub ? homeMembers.members : c.members,
+      // Global tickets only tag officers, not the general membership.
+      members: (c.isHomeClub ? homeMembers.members : c.members).filter((m) => m.role !== "Member"),
     }));
     return { isLoading: homeMembers.isLoading, groups };
   }, [clubs, homeMembers]);

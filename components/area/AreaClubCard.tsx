@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, Users, Star, CalendarCheck, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STATUS_BADGE_STYLES, type AreaClub } from "@/lib/areaConstants";
+import type { DateRangePreset } from "@/lib/dateRangeConstants";
 import { useClubMeetingStats } from "@/hooks/useClubMeetingStats";
 import { MeetingAttendanceModal } from "./MeetingAttendanceModal";
 
@@ -17,9 +18,9 @@ function attendanceTone(value: number | null) {
   return "text-destructive";
 }
 
-export function AreaClubCard({ club }: { club: AreaClub }) {
+export function AreaClubCard({ club, range }: { club: AreaClub; range: DateRangePreset }) {
   const goalMet = club.memberCount >= club.goalMemberCount;
-  const stats = useClubMeetingStats(club);
+  const stats = useClubMeetingStats(club, range);
   const [modalOpen, setModalOpen] = useState(false);
 
   return (

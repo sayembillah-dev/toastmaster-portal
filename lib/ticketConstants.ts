@@ -1,10 +1,14 @@
 import { DIVISION_DIRECTOR_LABEL } from "@/lib/areaConstants";
 
-export const TICKET_STATUSES = ["Open", "Active", "Resolved"] as const;
+export const TICKET_STATUSES = ["Open", "Resolved"] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
 
 export const TICKET_SEVERITIES = ["Low", "Medium", "High"] as const;
 export type TicketSeverity = (typeof TICKET_SEVERITIES)[number];
+
+// There's no per-user login yet, so every ticket created in this browser is
+// automatically attributed to a single stand-in identity rather than asking.
+export const CURRENT_USER_LABEL = "You";
 
 export type TicketPartyType = "club" | "person" | "division";
 
@@ -12,8 +16,14 @@ export type TicketParty = {
   type: TicketPartyType;
   // Present for "club" and "person" parties — absent for "division".
   clubId?: string;
+  // Display label for "club" (club name) and "division" (Division Director label).
+  // For "person" this holds the tagged member's actual name — kept only so "tagged
+  // in you" filtering can match it; it's never rendered (see partyLabel below),
+  // since a bare human name doesn't say who resolves it or from which club.
   name: string;
-  resolved: boolean;
+  // "person" only — rendered as "<clubName> — <role>" instead of the member's name.
+  clubName?: string;
+  role?: string;
 };
 
 export type GlobalTicket = {
@@ -22,31 +32,39 @@ export type GlobalTicket = {
   description: string;
   severity: TicketSeverity;
   date: string;
+  createdBy: string;
+  // Resolution is a single action on the ticket as a whole, not per tagged party —
+  // there's no per-user login yet to know which party a given viewer represents,
+  // so anyone resolving on a specific party's behalf would be a guess.
+  resolved: boolean;
   parties: TicketParty[];
 };
 
-// Status is derived, never stored directly — a ticket isn't "Resolved" until
-// every connected party (club president, tagged member(s), Division Director) has resolved their part.
+// Case/whitespace-insensitive identity match, used to compare a ticket's
+// createdBy/party name against the current viewer's typed name.
+export function sameName(a: string, b: string): boolean {
+  const x = a.trim().toLowerCase();
+  const y = b.trim().toLowerCase();
+  return x.length > 0 && x === y;
+}
+
 export function ticketStatus(ticket: GlobalTicket): TicketStatus {
-  if (ticket.parties.length === 0) return "Open";
-  if (ticket.parties.every((p) => p.resolved)) return "Resolved";
-  if (ticket.parties.some((p) => p.resolved)) return "Active";
-  return "Open";
+  return ticket.resolved ? "Resolved" : "Open";
 }
 
-export function partyKey(p: TicketParty): string {
+// Display label for an "Involved" badge — club + role for a tagged person, rather
+// than their bare name, so it's clear which club/role is responsible.
+export function partyLabel(p: TicketParty): string {
+  if (p.type === "person") return [p.clubName, p.role].filter(Boolean).join(" — ") || p.name;
+  return p.name;
+}
+
+export function partyDisplayKey(p: TicketParty): string {
   return `${p.type}:${p.clubId ?? ""}:${p.name}`;
-}
-
-export function partyResolverLabel(p: TicketParty): string {
-  if (p.type === "club") return `${p.name} — resolved by President`;
-  if (p.type === "division") return `Resolved by ${p.name}`;
-  return `Resolved by ${p.name}`;
 }
 
 export const TICKET_STATUS_STYLES: Record<TicketStatus, string> = {
   Open: "bg-amber-100 text-amber-700 border-amber-200",
-  Active: "bg-blue-100 text-blue-700 border-blue-200",
   Resolved: "bg-green-100 text-green-700 border-green-200",
 };
 
@@ -56,18 +74,20 @@ export const TICKET_SEVERITY_STYLES: Record<TicketSeverity, string> = {
   High: "bg-red-100 text-red-700 border-red-200",
 };
 
-export const TICKETS_STORAGE_KEY = "ntc_tickets_v1";
+// Bumped to v3 when per-party resolution was replaced with a single ticket-level
+// `resolved` flag, so existing localStorage data (shaped for the old model) reseeds.
+export const TICKETS_STORAGE_KEY = "ntc_tickets_v3";
 
-function clubParty(clubId: string, clubName: string, resolved: boolean): TicketParty {
-  return { type: "club", clubId, name: clubName, resolved };
+function clubParty(clubId: string, clubName: string): TicketParty {
+  return { type: "club", clubId, name: clubName };
 }
 
-function personParty(clubId: string, name: string, resolved: boolean): TicketParty {
-  return { type: "person", clubId, name, resolved };
+function personParty(clubId: string, clubName: string, personName: string, role: string): TicketParty {
+  return { type: "person", clubId, clubName, name: personName, role };
 }
 
-function divisionParty(resolved: boolean): TicketParty {
-  return { type: "division", name: DIVISION_DIRECTOR_LABEL, resolved };
+function divisionParty(): TicketParty {
+  return { type: "division", name: DIVISION_DIRECTOR_LABEL };
 }
 
 function ticket(
@@ -76,9 +96,11 @@ function ticket(
   description: string,
   severity: TicketSeverity,
   date: string,
+  createdBy: string,
+  resolved: boolean,
   parties: TicketParty[],
 ): GlobalTicket {
-  return { id, title, description, severity, date, parties };
+  return { id, title, description, severity, date, createdBy, resolved, parties };
 }
 
 export const SEED_TICKETS: GlobalTicket[] = [
@@ -89,7 +111,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "The venue's ceiling projector has been flickering out mid-meeting for the past two sessions. Needs a bulb check or replacement before the next agenda.",
     "Medium",
     "Jul 18, 2026",
-    [clubParty("home-club", "NTC", false)],
+    "Sergeant-at-Arms",
+    false,
+    [clubParty("home-club", "NTC")],
   ),
   ticket(
     "tix-2",
@@ -97,7 +121,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Table Topics slot is short-handed for the upcoming meeting — looking for two members willing to help fill it.",
     "Low",
     "Jul 15, 2026",
-    [personParty("home-club", "VP Education", false)],
+    "President",
+    false,
+    [personParty("home-club", "NTC", "VP Education", "VP Education")],
   ),
   ticket(
     "tix-3",
@@ -105,7 +131,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Three members are past due on club dues. Treasurer has sent reminders; following up before the next billing cycle.",
     "Low",
     "Jul 3, 2026",
-    [personParty("home-club", "Treasurer", true)],
+    "Secretary",
+    true,
+    [personParty("home-club", "NTC", "Treasurer", "Treasurer")],
   ),
 
   // Riverside Speakers
@@ -115,7 +143,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Two members who joined last month are ready to be paired with a mentor for their first pathway level.",
     "Low",
     "Jul 20, 2026",
-    [personParty("dummy-1", "Devon Lok", false)],
+    "Amara Osei",
+    false,
+    [personParty("dummy-1", "Riverside Speakers", "Devon Lok", "VP Education")],
   ),
   ticket(
     "tix-5",
@@ -123,7 +153,12 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "The library has double-booked Meeting Room A for our regular slot — need an alternate room confirmed before the 28th.",
     "Medium",
     "Jul 17, 2026",
-    [personParty("dummy-1", "Amara Osei", true), personParty("dummy-1", "Hana Suzuki", false)],
+    "Amara Osei",
+    false,
+    [
+      personParty("dummy-1", "Riverside Speakers", "Amara Osei", "President"),
+      personParty("dummy-1", "Riverside Speakers", "Hana Suzuki", "Sergeant-at-Arms"),
+    ],
   ),
   ticket(
     "tix-6",
@@ -131,7 +166,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Persistent mic feedback during Table Topics was traced to a loose XLR cable; venue technician fixed it on-site.",
     "Low",
     "Jun 25, 2026",
-    [personParty("dummy-1", "Hana Suzuki", true)],
+    "Amara Osei",
+    true,
+    [personParty("dummy-1", "Riverside Speakers", "Hana Suzuki", "Sergeant-at-Arms")],
   ),
 
   // Downtown Communicators
@@ -141,7 +178,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "About 6 guests from the last month haven't received a follow-up call or email yet.",
     "Medium",
     "Jul 19, 2026",
-    [personParty("dummy-2", "Tomas Silva", false)],
+    "Grace Okafor",
+    false,
+    [personParty("dummy-2", "Downtown Communicators", "Tomas Silva", "VP Membership")],
   ),
   ticket(
     "tix-8",
@@ -149,7 +188,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Table Topics has run 8-10 minutes over the last three meetings, pushing the agenda late.",
     "Low",
     "Jul 12, 2026",
-    [personParty("dummy-2", "Ravi Chandran", false)],
+    "Grace Okafor",
+    false,
+    [personParty("dummy-2", "Downtown Communicators", "Ravi Chandran", "VP Education")],
   ),
   ticket(
     "tix-9",
@@ -157,7 +198,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "A few members were confused about the renewal window; deadline has been clarified and communicated.",
     "Medium",
     "Jun 30, 2026",
-    [personParty("dummy-2", "Owen Fitzgerald", true)],
+    "Nadia Haddad",
+    true,
+    [personParty("dummy-2", "Downtown Communicators", "Owen Fitzgerald", "Treasurer")],
   ),
 
   // Sunrise Toastmasters
@@ -167,7 +210,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Timer, Ah-Counter, and Grammarian have gone unfilled for 3 of the last 4 meetings due to low turnout.",
     "High",
     "Jul 21, 2026",
-    [clubParty("dummy-3", "Sunrise Toastmasters", false)],
+    "Carlos Mendes",
+    false,
+    [clubParty("dummy-3", "Sunrise Toastmasters")],
   ),
   ticket(
     "tix-11",
@@ -175,7 +220,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Renewal emails haven't been sent for this cycle — need to confirm the mailing list and resend.",
     "High",
     "Jul 14, 2026",
-    [personParty("dummy-3", "Ingrid Solberg", false)],
+    "Carlos Mendes",
+    false,
+    [personParty("dummy-3", "Sunrise Toastmasters", "Ingrid Solberg", "VP Membership")],
   ),
   ticket(
     "tix-12",
@@ -183,7 +230,12 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Community center has flagged possible renovations that could bump our regular Saturday slot.",
     "Medium",
     "Jul 5, 2026",
-    [personParty("dummy-3", "Carlos Mendes", true), personParty("dummy-3", "Arjun Mehta", false)],
+    "Carlos Mendes",
+    false,
+    [
+      personParty("dummy-3", "Sunrise Toastmasters", "Carlos Mendes", "President"),
+      personParty("dummy-3", "Sunrise Toastmasters", "Arjun Mehta", "Sergeant-at-Arms"),
+    ],
   ),
 
   // Innovators Club
@@ -193,7 +245,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Three members want help choosing their next Pathways level and need guidance from VPE.",
     "Low",
     "Jul 16, 2026",
-    [personParty("dummy-4", "Aisha Bello", false)],
+    "Wei Chen",
+    false,
+    [personParty("dummy-4", "Innovators Club", "Aisha Bello", "VP Education")],
   ),
   ticket(
     "tix-14",
@@ -201,7 +255,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Assigned evaluators have dropped out last-minute twice — need a backup evaluator process.",
     "Medium",
     "Jul 9, 2026",
-    [personParty("dummy-4", "Wei Chen", false)],
+    "Wei Chen",
+    false,
+    [personParty("dummy-4", "Innovators Club", "Wei Chen", "President")],
   ),
   ticket(
     "tix-15",
@@ -209,7 +265,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "VP PR has lined up a guest-chair rotation for the Q3 open house campaign.",
     "Low",
     "Jun 20, 2026",
-    [personParty("dummy-4", "Diego Fernandez", true)],
+    "Diego Fernandez",
+    true,
+    [personParty("dummy-4", "Innovators Club", "Diego Fernandez", "VP Public Relations")],
   ),
 
   // Voices of Change
@@ -219,7 +277,9 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Active membership has dropped to 11, close to the charter-strength floor. Needs an intervention plan.",
     "High",
     "Jul 22, 2026",
-    [clubParty("dummy-5", "Voices of Change", false)],
+    "Isabel Duarte",
+    false,
+    [clubParty("dummy-5", "Voices of Change")],
   ),
   ticket(
     "tix-17",
@@ -227,10 +287,12 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Officers have asked for an Area Director visit to help energize a recruitment push next quarter, and flagged it up the chain too.",
     "High",
     "Jul 20, 2026",
+    "Isabel Duarte",
+    false,
     [
-      personParty("dummy-5", "Isabel Duarte", false),
-      personParty("dummy-5", "Zara Ahmed", false),
-      divisionParty(false),
+      personParty("dummy-5", "Voices of Change", "Isabel Duarte", "President"),
+      personParty("dummy-5", "Voices of Change", "Zara Ahmed", "VP Public Relations"),
+      divisionParty(),
     ],
   ),
   ticket(
@@ -239,6 +301,8 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "June's financial report hasn't been submitted yet — following up with the Treasurer.",
     "Medium",
     "Jul 10, 2026",
-    [personParty("dummy-5", "Felix Nowak", false)],
+    "Isabel Duarte",
+    false,
+    [personParty("dummy-5", "Voices of Change", "Felix Nowak", "Treasurer")],
   ),
 ];

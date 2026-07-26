@@ -25,7 +25,7 @@ type Props = {
 
 export function TicketNotificationBell({ scope }: Props) {
   const router = useRouter();
-  const { tickets, updateTicket, deleteTicket, setPartyResolved } = useTickets();
+  const { tickets, updateTicket, deleteTicket, setTicketResolved } = useTickets();
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
   const relevant = useMemo(() => {
@@ -93,7 +93,7 @@ export function TicketNotificationBell({ scope }: Props) {
         ticket={selectedTicket}
         open={selectedTicketId !== null}
         onOpenChange={(open) => { if (!open) setSelectedTicketId(null); }}
-        onResolveParty={setPartyResolved}
+        onResolveTicket={setTicketResolved}
         onUpdate={updateTicket}
         onDelete={(id) => { deleteTicket(id); setSelectedTicketId(null); }}
       />

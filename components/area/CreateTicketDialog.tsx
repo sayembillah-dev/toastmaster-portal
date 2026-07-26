@@ -21,7 +21,13 @@ import {
 } from "@/components/ui/select";
 import { useClubMembers } from "@/hooks/useClubMembers";
 import type { AreaClub } from "@/lib/areaConstants";
-import { TICKET_SEVERITIES, type GlobalTicket, type TicketParty, type TicketSeverity } from "@/lib/ticketConstants";
+import {
+  CURRENT_USER_LABEL,
+  TICKET_SEVERITIES,
+  type GlobalTicket,
+  type TicketParty,
+  type TicketSeverity,
+} from "@/lib/ticketConstants";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
@@ -63,8 +69,14 @@ export function CreateTicketDialog({ open, onOpenChange, club, onCreate }: Props
     // No specific person tagged → the ticket is against the whole club (President resolves).
     const parties: TicketParty[] =
       form.tags.length > 0
-        ? form.tags.map((name) => ({ type: "person" as const, clubId: club.id, name, resolved: false }))
-        : [{ type: "club" as const, clubId: club.id, name: club.name, resolved: false }];
+        ? form.tags.map((name) => ({
+            type: "person" as const,
+            clubId: club.id,
+            clubName: club.name,
+            name,
+            role: members.find((m) => m.name === name)?.role,
+          }))
+        : [{ type: "club" as const, clubId: club.id, name: club.name }];
 
     const ticket: GlobalTicket = {
       id: `ticket-${Date.now()}`,
@@ -72,6 +84,8 @@ export function CreateTicketDialog({ open, onOpenChange, club, onCreate }: Props
       description: form.description.trim(),
       severity: form.severity,
       date: todayLabel(),
+      createdBy: CURRENT_USER_LABEL,
+      resolved: false,
       parties,
     };
 

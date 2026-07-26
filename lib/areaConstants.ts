@@ -1,4 +1,4 @@
-import { CLUB_ROLES } from "@/lib/memberConstants";
+import { CLUB_ROLES, type MemberPaymentStatus } from "@/lib/memberConstants";
 
 export const HOME_CLUB_ID = "home-club";
 
@@ -22,7 +22,7 @@ export type AreaClubMember = {
   id: string;
   name: string;
   role: string;
-  paid: boolean;
+  paymentStatus: MemberPaymentStatus;
 };
 
 export type RoleActivity = {
@@ -39,9 +39,16 @@ function roleActivityFrom(percentages: number[]): RoleActivity[] {
 
 function buildMembers(
   clubId: string,
+  // Dummy roster placeholder — only paid/unpaid, since these clubs have no real dues data
+  // to justify seeding "Advance Paid" examples.
   entries: [name: string, role: string, paid: boolean][],
 ): AreaClubMember[] {
-  return entries.map(([name, role, paid], i) => ({ id: `${clubId}-mem-${i}`, name, role, paid }));
+  return entries.map(([name, role, paid], i) => ({
+    id: `${clubId}-mem-${i}`,
+    name,
+    role,
+    paymentStatus: paid ? "paid" : "unpaid",
+  }));
 }
 
 export type AreaClub = {

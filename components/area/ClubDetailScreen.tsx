@@ -10,11 +10,14 @@ import { StatTile } from "./StatTile";
 import { CreateTicketDialog } from "./CreateTicketDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { MemberPaymentBadge } from "@/components/members/MemberPaymentBadge";
+import { DateRangeSelect } from "@/components/shared/DateRangeSelect";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TicketDetailModal } from "@/components/shared/TicketDetailModal";
 import { cn } from "@/lib/utils";
 import { STATUS_BADGE_STYLES, type AreaClub } from "@/lib/areaConstants";
+import { resolveDateRange, isWithinRange, type DateRangePreset } from "@/lib/dateRangeConstants";
 import { ticketStatus, TICKET_STATUS_STYLES, type GlobalTicket } from "@/lib/ticketConstants";
 import {
   ArrowLeft,
@@ -80,15 +83,21 @@ export function ClubDetailScreen({ clubId }: { clubId: string }) {
 }
 
 function ClubDetailContent({ club }: { club: AreaClub }) {
-  const meetingStats = useClubMeetingStats(club);
+  const [range, setRange] = useState<DateRangePreset>("this_month");
+  const meetingStats = useClubMeetingStats(club, range);
   const memberStats = useClubMembers(club);
-  const { tickets, addTicket, updateTicket, deleteTicket, setPartyResolved } = useTickets();
+  const { tickets, addTicket, updateTicket, deleteTicket, setTicketResolved } = useTickets();
   const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
+  const dateRange = useMemo(() => resolveDateRange(range), [range]);
   const clubTickets = useMemo(
-    () => tickets.filter((t) => t.parties.some((p) => p.clubId === club.id)),
-    [tickets, club.id],
+    () =>
+      tickets.filter((t) => t.parties.some((p) => p.clubId === club.id)).filter((t) => {
+        const d = new Date(t.date);
+        return !Number.isNaN(d.getTime()) && isWithinRange(d, dateRange);
+      }),
+    [tickets, club.id, dateRange],
   );
   const selectedTicket = tickets.find((t) => t.id === selectedTicketId) ?? null;
 
@@ -142,9 +151,12 @@ function ClubDetailContent({ club }: { club: AreaClub }) {
             </p>
           </div>
         </div>
-        <Badge variant="outline" className={cn(STATUS_BADGE_STYLES[club.status])}>
-          {club.status}
-        </Badge>
+        <div className="flex items-center gap-3 flex-wrap">
+          <DateRangeSelect value={range} onChange={setRange} />
+          <Badge variant="outline" className={cn(STATUS_BADGE_STYLES[club.status])}>
+            {club.status}
+          </Badge>
+        </div>
       </div>
 
       {/* Top stat cards */}
@@ -263,17 +275,7 @@ function ClubDetailContent({ club }: { club: AreaClub }) {
                       <p className="text-sm truncate">{m.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{m.role}</p>
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-xs shrink-0",
-                        m.paid
-                          ? "bg-green-100 text-green-700 border-green-200"
-                          : "bg-amber-100 text-amber-700 border-amber-200",
-                      )}
-                    >
-                      {m.paid ? "Paid" : "Unpaid"}
-                    </Badge>
+                    <MemberPaymentBadge status={m.paymentStatus} />
                   </div>
                 ))}
               </div>
@@ -312,7 +314,7 @@ function ClubDetailContent({ club }: { club: AreaClub }) {
                         <p className="text-xs text-muted-foreground">{t.description}</p>
                       )}
                       <p className="text-xs text-muted-foreground">
-                        {t.severity} severity · {t.date}
+                        Created by <span className="font-medium text-foreground">{t.createdBy}</span> · {t.severity} severity · {t.date}
                       </p>
                     </button>
                   );
@@ -334,7 +336,7 @@ function ClubDetailContent({ club }: { club: AreaClub }) {
         ticket={selectedTicket}
         open={selectedTicketId !== null}
         onOpenChange={(open) => { if (!open) setSelectedTicketId(null); }}
-        onResolveParty={setPartyResolved}
+        onResolveTicket={setTicketResolved}
         onUpdate={updateTicket}
         onDelete={(id) => { deleteTicket(id); setSelectedTicketId(null); }}
       />

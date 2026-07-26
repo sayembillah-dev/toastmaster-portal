@@ -23,6 +23,7 @@ import {
 import { useAllClubMembersGrouped } from "@/hooks/useAllClubMembersGrouped";
 import { DIVISION_DIRECTOR_LABEL, type AreaClub } from "@/lib/areaConstants";
 import {
+  CURRENT_USER_LABEL,
   TICKET_SEVERITIES,
   type GlobalTicket,
   type TicketParty,
@@ -32,7 +33,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Building2, ChevronDown, ArrowUpCircle, X, Check } from "lucide-react";
 
-type SelectedPerson = { clubId: string; name: string };
+type SelectedPerson = { clubId: string; clubName: string; name: string; role: string };
 
 type Props = {
   open: boolean;
@@ -77,12 +78,12 @@ export function CreateAreaTicketDialog({ open, onOpenChange, clubs, onCreate }: 
     });
   }
 
-  function togglePerson(clubId: string, name: string) {
+  function togglePerson(clubId: string, clubName: string, name: string, role: string) {
     setSelectedPeople((prev) => {
       const exists = prev.some((p) => p.clubId === clubId && p.name === name);
       return exists
         ? prev.filter((p) => !(p.clubId === clubId && p.name === name))
-        : [...prev, { clubId, name }];
+        : [...prev, { clubId, clubName, name, role }];
     });
   }
 
@@ -111,10 +112,16 @@ export function CreateAreaTicketDialog({ open, onOpenChange, clubs, onCreate }: 
     const parties: TicketParty[] = [
       ...[...selectedClubIds].map((clubId) => {
         const club = clubs.find((c) => c.id === clubId);
-        return { type: "club" as const, clubId, name: club?.name ?? clubId, resolved: false };
+        return { type: "club" as const, clubId, name: club?.name ?? clubId };
       }),
-      ...selectedPeople.map((p) => ({ type: "person" as const, clubId: p.clubId, name: p.name, resolved: false })),
-      ...(escalate ? [{ type: "division" as const, name: DIVISION_DIRECTOR_LABEL, resolved: false }] : []),
+      ...selectedPeople.map((p) => ({
+        type: "person" as const,
+        clubId: p.clubId,
+        clubName: p.clubName,
+        name: p.name,
+        role: p.role,
+      })),
+      ...(escalate ? [{ type: "division" as const, name: DIVISION_DIRECTOR_LABEL }] : []),
     ];
 
     const ticket: GlobalTicket = {
@@ -123,6 +130,8 @@ export function CreateAreaTicketDialog({ open, onOpenChange, clubs, onCreate }: 
       description: description.trim(),
       severity,
       date: todayLabel(),
+      createdBy: CURRENT_USER_LABEL,
+      resolved: false,
       parties,
     };
 
@@ -163,7 +172,7 @@ export function CreateAreaTicketDialog({ open, onOpenChange, clubs, onCreate }: 
                   {p.name}
                   <button
                     type="button"
-                    onClick={() => togglePerson(p.clubId, p.name)}
+                    onClick={() => togglePerson(p.clubId, p.clubName, p.name, p.role)}
                     className="rounded-full hover:bg-muted-foreground/20 p-0.5"
                   >
                     <X className="h-3 w-3" />
@@ -250,7 +259,7 @@ export function CreateAreaTicketDialog({ open, onOpenChange, clubs, onCreate }: 
                               <button
                                 key={m.id}
                                 type="button"
-                                onClick={() => togglePerson(g.clubId, m.name)}
+                                onClick={() => togglePerson(g.clubId, g.clubName, m.name, m.role)}
                                 className="w-full flex items-center gap-2 pl-8 pr-3 py-1.5 text-left hover:bg-muted/40 transition-colors"
                               >
                                 <span

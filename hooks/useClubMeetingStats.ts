@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useEvents } from "./useEvents";
 import type { AreaClub } from "@/lib/areaConstants";
+import { resolveDateRange, isWithinRange, type DateRangePreset } from "@/lib/dateRangeConstants";
 
 export type MeetingAttendanceRow = {
   id: string;
@@ -27,12 +28,19 @@ function aggregate(
   );
 }
 
-export function useClubMeetingStats(club: AreaClub): ClubMeetingStats {
+export function useClubMeetingStats(club: AreaClub, rangePreset: DateRangePreset): ClubMeetingStats {
   const { data: events, isLoading: eventsLoading } = useEvents();
+  const range = useMemo(() => resolveDateRange(rangePreset), [rangePreset]);
 
   return useMemo(() => {
     if (!club.isHomeClub) {
-      const rows: MeetingAttendanceRow[] = club.meetings.map((m) => ({
+      // Dummy clubs only carry a display label (e.g. "Jun 2, 2026"), not a real
+      // Date — parse it so the same range filter still applies.
+      const inRange = club.meetings.filter((m) => {
+        const d = new Date(m.label);
+        return !Number.isNaN(d.getTime()) && isWithinRange(d, range);
+      });
+      const rows: MeetingAttendanceRow[] = inRange.map((m) => ({
         id: m.id,
         label: m.label,
         present: m.total > 0 ? m.present : null,
@@ -43,7 +51,7 @@ export function useClubMeetingStats(club: AreaClub): ClubMeetingStats {
       const totalRoster = recorded.reduce((sum, r) => sum + r.total, 0);
       return {
         isLoading: false,
-        meetingsConducted: club.meetings.length,
+        meetingsConducted: inRange.length,
         attendancePercentage: totalRoster > 0 ? Math.round((totalPresent / totalRoster) * 100) : null,
         meetings: rows,
       };
@@ -55,7 +63,9 @@ export function useClubMeetingStats(club: AreaClub): ClubMeetingStats {
 
     const startOfToday = new Date(new Date().setHours(0, 0, 0, 0));
     const pastMeetings = events
-      .filter((e) => !e.isTemplate && new Date(e.date) < startOfToday)
+      .filter(
+        (e) => !e.isTemplate && new Date(e.date) < startOfToday && isWithinRange(new Date(e.date), range),
+      )
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const rows: MeetingAttendanceRow[] = pastMeetings.map((e) => {
@@ -84,5 +94,5 @@ export function useClubMeetingStats(club: AreaClub): ClubMeetingStats {
       attendancePercentage: totalRoster > 0 ? Math.round((totalPresent / totalRoster) * 100) : null,
       meetings: rows,
     };
-  }, [club, events, eventsLoading]);
+  }, [club, events, eventsLoading, range]);
 }

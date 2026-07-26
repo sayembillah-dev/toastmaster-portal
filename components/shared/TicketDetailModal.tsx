@@ -23,29 +23,29 @@ import {
 import { cn } from "@/lib/utils";
 import {
   ticketStatus,
-  partyKey,
-  partyResolverLabel,
+  partyLabel,
+  partyDisplayKey,
   TICKET_STATUS_STYLES,
   TICKET_SEVERITY_STYLES,
   TICKET_SEVERITIES,
   type GlobalTicket,
   type TicketSeverity,
 } from "@/lib/ticketConstants";
-import { Building2, User, ArrowUpCircle, Check, Pencil, Trash2 } from "lucide-react";
+import { Building2, User, UserPen, ArrowUpCircle, Check, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
   ticket: GlobalTicket | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onResolveParty: (ticketId: string, key: string, resolved: boolean) => void;
+  onResolveTicket: (ticketId: string, resolved: boolean) => void;
   onUpdate: (ticketId: string, patch: Partial<GlobalTicket>) => void;
   onDelete: (ticketId: string) => void;
 };
 
 const PARTY_ICON = { club: Building2, person: User, division: ArrowUpCircle } as const;
 
-export function TicketDetailModal({ ticket, open, onOpenChange, onResolveParty, onUpdate, onDelete }: Props) {
+export function TicketDetailModal({ ticket, open, onOpenChange, onResolveTicket, onUpdate, onDelete }: Props) {
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [title, setTitle] = useState("");
@@ -82,6 +82,12 @@ export function TicketDetailModal({ ticket, open, onOpenChange, onResolveParty, 
     onDelete(ticket.id);
     toast.success("Ticket deleted");
     onOpenChange(false);
+  }
+
+  function handleToggleResolved() {
+    if (!ticket) return;
+    onResolveTicket(ticket.id, !ticket.resolved);
+    toast.success(ticket.resolved ? "Ticket reopened" : "Ticket resolved");
   }
 
   return (
@@ -145,42 +151,43 @@ export function TicketDetailModal({ ticket, open, onOpenChange, onResolveParty, 
               <span className="text-xs text-muted-foreground">{ticket.date}</span>
             </div>
 
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <UserPen className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                Created by <span className="font-medium text-foreground">{ticket.createdBy}</span>
+              </span>
+            </div>
+
             {ticket.description && (
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{ticket.description}</p>
             )}
 
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                Must be resolved by every party below
-              </Label>
-              <div className="border rounded-lg divide-y">
-                {ticket.parties.map((p) => {
-                  const key = partyKey(p);
-                  const Icon = PARTY_ICON[p.type];
-                  return (
-                    <div key={key} className="flex items-center justify-between gap-3 px-3 py-2.5">
-                      <div className="flex items-center gap-2 min-w-0">
+            {ticket.parties.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Involved</Label>
+                <div className="border rounded-lg divide-y">
+                  {ticket.parties.map((p) => {
+                    const Icon = PARTY_ICON[p.type];
+                    return (
+                      <div key={partyDisplayKey(p)} className="flex items-center gap-2 px-3 py-2.5">
                         <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm truncate">{partyResolverLabel(p)}</span>
+                        <span className="text-sm truncate">{partyLabel(p)}</span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => onResolveParty(ticket.id, key, !p.resolved)}
-                        className={cn(
-                          "flex items-center gap-1 rounded-full border px-2 py-1 text-xs shrink-0 transition-colors",
-                          p.resolved
-                            ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
-                            : "text-muted-foreground hover:bg-muted",
-                        )}
-                      >
-                        {p.resolved && <Check className="h-3 w-3" />}
-                        {p.resolved ? "Resolved" : "Mark Resolved"}
-                      </button>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
+
+            <Button
+              type="button"
+              variant={ticket.resolved ? "outline" : "default"}
+              className={cn("w-full gap-1.5", !ticket.resolved && "bg-green-600 hover:bg-green-700 text-white")}
+              onClick={handleToggleResolved}
+            >
+              {ticket.resolved ? <RotateCcw className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
+              {ticket.resolved ? "Reopen Ticket" : "Mark Ticket Resolved"}
+            </Button>
           </div>
         )}
 

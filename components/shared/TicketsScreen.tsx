@@ -9,13 +9,17 @@ import { cn } from "@/lib/utils";
 import { HOME_CLUB_ID } from "@/lib/areaConstants";
 import {
   ticketStatus,
+  sameName,
+  partyLabel,
+  partyDisplayKey,
+  CURRENT_USER_LABEL,
   TICKET_STATUS_STYLES,
   TICKET_SEVERITY_STYLES,
   type GlobalTicket,
 } from "@/lib/ticketConstants";
-import { Building2, User, ArrowUpCircle, TicketX } from "lucide-react";
+import { Building2, User, UserPen, ArrowUpCircle, TicketX } from "lucide-react";
 
-type Tab = "mine" | "all";
+type Tab = "created" | "tagged";
 type Props = { scope: "club" | "area"; title: string; subtitle?: string };
 
 const PARTY_ICON = { club: Building2, person: User, division: ArrowUpCircle } as const;
@@ -49,7 +53,7 @@ function TicketRow({ ticket, onClick }: { ticket: GlobalTicket; onClick: () => v
     <button
       type="button"
       onClick={onClick}
-      className="w-full px-3 py-3 space-y-1.5 text-left hover:bg-muted/40 transition-colors"
+      className="w-full px-3 py-3 space-y-2 text-left hover:bg-muted/40 transition-colors"
     >
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-medium">{ticket.title}</p>
@@ -60,36 +64,41 @@ function TicketRow({ ticket, onClick }: { ticket: GlobalTicket; onClick: () => v
       {ticket.description && (
         <p className="text-xs text-muted-foreground line-clamp-2">{ticket.description}</p>
       )}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className={cn("text-xs", TICKET_SEVERITY_STYLES[ticket.severity])}>
-            {ticket.severity}
-          </Badge>
-          <span className="text-xs text-muted-foreground">{ticket.date}</span>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {ticket.parties.map((p) => {
-            const Icon = PARTY_ICON[p.type];
-            return (
-              <Badge
-                key={`${p.type}-${p.clubId ?? ""}-${p.name}`}
-                variant="secondary"
-                className={cn("text-xs gap-1", p.resolved && "opacity-60 line-through")}
-              >
-                <Icon className="h-3 w-3" />
-                {p.name}
-              </Badge>
-            );
-          })}
-        </div>
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <UserPen className="h-3 w-3 shrink-0" />
+        <span>
+          Created by <span className="font-medium text-foreground">{ticket.createdBy}</span>
+        </span>
       </div>
+      <div className="flex items-center gap-2">
+        <Badge variant="outline" className={cn("text-xs", TICKET_SEVERITY_STYLES[ticket.severity])}>
+          {ticket.severity}
+        </Badge>
+        <span className="text-xs text-muted-foreground">{ticket.date}</span>
+      </div>
+      {ticket.parties.length > 0 && (
+        <div className="flex items-start gap-1.5 flex-wrap">
+          <span className="text-xs text-muted-foreground shrink-0 pt-0.5">Involved:</span>
+          <div className="flex flex-wrap gap-1">
+            {ticket.parties.map((p) => {
+              const Icon = PARTY_ICON[p.type];
+              return (
+                <Badge key={partyDisplayKey(p)} variant="secondary" className="text-xs gap-1">
+                  <Icon className="h-3 w-3" />
+                  {partyLabel(p)}
+                </Badge>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </button>
   );
 }
 
 export function TicketsScreen({ scope, title, subtitle }: Props) {
-  const { tickets, isLoading, updateTicket, deleteTicket, setPartyResolved } = useTickets();
-  const [tab, setTab] = useState<Tab>("mine");
+  const { tickets, isLoading, updateTicket, deleteTicket, setTicketResolved } = useTickets();
+  const [tab, setTab] = useState<Tab>("created");
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
   const scoped = useMemo(
@@ -100,8 +109,15 @@ export function TicketsScreen({ scope, title, subtitle }: Props) {
     [tickets, scope],
   );
 
-  const mine = useMemo(() => scoped.filter((t) => ticketStatus(t) !== "Resolved"), [scoped]);
-  const visible = tab === "mine" ? mine : scoped;
+  const created = useMemo(
+    () => scoped.filter((t) => sameName(t.createdBy, CURRENT_USER_LABEL)),
+    [scoped],
+  );
+  const taggedIn = useMemo(
+    () => scoped.filter((t) => t.parties.some((p) => p.type === "person" && sameName(p.name, CURRENT_USER_LABEL))),
+    [scoped],
+  );
+  const visible = tab === "created" ? created : taggedIn;
   const selectedTicket = tickets.find((t) => t.id === selectedTicketId) ?? null;
 
   if (isLoading) {
@@ -126,11 +142,11 @@ export function TicketsScreen({ scope, title, subtitle }: Props) {
       </div>
 
       <div className="flex gap-1 border-b">
-        <TabButton active={tab === "mine"} onClick={() => setTab("mine")}>
-          My Tickets ({mine.length})
+        <TabButton active={tab === "created"} onClick={() => setTab("created")}>
+          Tickets you created ({created.length})
         </TabButton>
-        <TabButton active={tab === "all"} onClick={() => setTab("all")}>
-          Tickets ({scoped.length})
+        <TabButton active={tab === "tagged"} onClick={() => setTab("tagged")}>
+          Tickets you&apos;re tagged in ({taggedIn.length})
         </TabButton>
       </div>
 
@@ -138,7 +154,7 @@ export function TicketsScreen({ scope, title, subtitle }: Props) {
         <div className="flex flex-col items-center gap-2 text-center py-16 text-muted-foreground">
           <TicketX className="h-8 w-8" />
           <p className="text-sm">
-            {tab === "mine" ? "Nothing needs your attention right now." : "No tickets yet."}
+            {tab === "created" ? "You haven't created any tickets yet." : "No tickets are tagged to you yet."}
           </p>
         </div>
       ) : (
@@ -153,7 +169,7 @@ export function TicketsScreen({ scope, title, subtitle }: Props) {
         ticket={selectedTicket}
         open={selectedTicketId !== null}
         onOpenChange={(open) => { if (!open) setSelectedTicketId(null); }}
-        onResolveParty={setPartyResolved}
+        onResolveTicket={setTicketResolved}
         onUpdate={updateTicket}
         onDelete={(id) => { deleteTicket(id); setSelectedTicketId(null); }}
       />

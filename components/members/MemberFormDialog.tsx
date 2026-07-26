@@ -272,7 +272,7 @@ export function MemberFormDialog({ open, onOpenChange, mode, member }: Props) {
               onValueChange={(v) => { if (v) set("paymentStatus", v as MemberPaymentStatus); }}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue>{(v: MemberPaymentStatus) => MEMBER_PAYMENT_LABELS[v]}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {MEMBER_PAYMENT_STATUSES.map((s) => (

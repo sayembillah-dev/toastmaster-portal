@@ -15,12 +15,13 @@ export const MEMBER_STATUSES = ["active", "inactive", "suspended"] as const;
 export type MemberStatus = (typeof MEMBER_STATUSES)[number];
 
 // Dues payment status, independent of the member's active/inactive/suspended standing.
-export const MEMBER_PAYMENT_STATUSES = ["paid", "unpaid"] as const;
+export const MEMBER_PAYMENT_STATUSES = ["paid", "unpaid", "advance_paid"] as const;
 export type MemberPaymentStatus = (typeof MEMBER_PAYMENT_STATUSES)[number];
 
 export const MEMBER_PAYMENT_LABELS: Record<MemberPaymentStatus, string> = {
   paid: "Paid",
   unpaid: "Unpaid",
+  advance_paid: "Advance Paid",
 };
 
 // What kind of event produced an activity log entry on a member's profile.

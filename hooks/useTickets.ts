@@ -1,12 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  SEED_TICKETS,
-  TICKETS_STORAGE_KEY,
-  partyKey,
-  type GlobalTicket,
-} from "@/lib/ticketConstants";
+import { SEED_TICKETS, TICKETS_STORAGE_KEY, type GlobalTicket } from "@/lib/ticketConstants";
 
 function loadTickets(): GlobalTicket[] {
   if (typeof window === "undefined") return SEED_TICKETS;
@@ -68,14 +63,10 @@ export function useTickets() {
     [persist],
   );
 
-  const setPartyResolved = useCallback(
-    (ticketId: string, key: string, resolved: boolean) => {
+  const setTicketResolved = useCallback(
+    (ticketId: string, resolved: boolean) => {
       setTickets((prev) => {
-        const next = prev.map((t) =>
-          t.id !== ticketId
-            ? t
-            : { ...t, parties: t.parties.map((p) => (partyKey(p) === key ? { ...p, resolved } : p)) },
-        );
+        const next = prev.map((t) => (t.id === ticketId ? { ...t, resolved } : t));
         persist(next);
         return next;
       });
@@ -83,5 +74,5 @@ export function useTickets() {
     [persist],
   );
 
-  return { tickets, isLoading, addTicket, updateTicket, deleteTicket, setPartyResolved };
+  return { tickets, isLoading, addTicket, updateTicket, deleteTicket, setTicketResolved };
 }

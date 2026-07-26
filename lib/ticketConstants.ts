@@ -1,5 +1,3 @@
-import { DIVISION_DIRECTOR_LABEL } from "@/lib/areaConstants";
-
 export const TICKET_STATUSES = ["Open", "Resolved"] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
 
@@ -74,9 +72,9 @@ export const TICKET_SEVERITY_STYLES: Record<TicketSeverity, string> = {
   High: "bg-red-100 text-red-700 border-red-200",
 };
 
-// Bumped to v3 when per-party resolution was replaced with a single ticket-level
-// `resolved` flag, so existing localStorage data (shaped for the old model) reseeds.
-export const TICKETS_STORAGE_KEY = "ntc_tickets_v3";
+// Bumped to v4 when the dummy club roster was trimmed down to the 3 real
+// external clubs, so existing localStorage data (shaped for the old dummy clubs) reseeds.
+export const TICKETS_STORAGE_KEY = "ntc_tickets_v4";
 
 function clubParty(clubId: string, clubName: string): TicketParty {
   return { type: "club", clubId, name: clubName };
@@ -84,10 +82,6 @@ function clubParty(clubId: string, clubName: string): TicketParty {
 
 function personParty(clubId: string, clubName: string, personName: string, role: string): TicketParty {
   return { type: "person", clubId, clubName, name: personName, role };
-}
-
-function divisionParty(): TicketParty {
-  return { type: "division", name: DIVISION_DIRECTOR_LABEL };
 }
 
 function ticket(
@@ -136,7 +130,7 @@ export const SEED_TICKETS: GlobalTicket[] = [
     [personParty("home-club", "NTC", "Treasurer", "Treasurer")],
   ),
 
-  // Riverside Speakers
+  // 100X Toastmaster Club
   ticket(
     "tix-4",
     "Requesting mentorship pairing for 2 new members",
@@ -145,7 +139,7 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Jul 20, 2026",
     "Amara Osei",
     false,
-    [personParty("dummy-1", "Riverside Speakers", "Devon Lok", "VP Education")],
+    [personParty("dummy-1", "100X Toastmaster Club", "Devon Lok", "VP Education")],
   ),
   ticket(
     "tix-5",
@@ -156,8 +150,8 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Amara Osei",
     false,
     [
-      personParty("dummy-1", "Riverside Speakers", "Amara Osei", "President"),
-      personParty("dummy-1", "Riverside Speakers", "Hana Suzuki", "Sergeant-at-Arms"),
+      personParty("dummy-1", "100X Toastmaster Club", "Amara Osei", "President"),
+      personParty("dummy-1", "100X Toastmaster Club", "Hana Suzuki", "Sergeant-at-Arms"),
     ],
   ),
   ticket(
@@ -168,10 +162,10 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Jun 25, 2026",
     "Amara Osei",
     true,
-    [personParty("dummy-1", "Riverside Speakers", "Hana Suzuki", "Sergeant-at-Arms")],
+    [personParty("dummy-1", "100X Toastmaster Club", "Hana Suzuki", "Sergeant-at-Arms")],
   ),
 
-  // Downtown Communicators
+  // Legacy Leaders Toastmasters
   ticket(
     "tix-7",
     "Guest follow-up backlog piling up",
@@ -180,7 +174,7 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Jul 19, 2026",
     "Grace Okafor",
     false,
-    [personParty("dummy-2", "Downtown Communicators", "Tomas Silva", "VP Membership")],
+    [personParty("dummy-2", "Legacy Leaders Toastmasters", "Tomas Silva", "VP Membership")],
   ),
   ticket(
     "tix-8",
@@ -190,7 +184,7 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Jul 12, 2026",
     "Grace Okafor",
     false,
-    [personParty("dummy-2", "Downtown Communicators", "Ravi Chandran", "VP Education")],
+    [personParty("dummy-2", "Legacy Leaders Toastmasters", "Ravi Chandran", "VP Education")],
   ),
   ticket(
     "tix-9",
@@ -200,10 +194,10 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Jun 30, 2026",
     "Nadia Haddad",
     true,
-    [personParty("dummy-2", "Downtown Communicators", "Owen Fitzgerald", "Treasurer")],
+    [personParty("dummy-2", "Legacy Leaders Toastmasters", "Owen Fitzgerald", "Treasurer")],
   ),
 
-  // Sunrise Toastmasters
+  // Dhrupodi Bangla Toastmasters Club
   ticket(
     "tix-10",
     "Struggling to fill functionary roles most weeks",
@@ -212,7 +206,7 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Jul 21, 2026",
     "Carlos Mendes",
     false,
-    [clubParty("dummy-3", "Sunrise Toastmasters")],
+    [clubParty("dummy-3", "Dhrupodi Bangla Toastmasters Club")],
   ),
   ticket(
     "tix-11",
@@ -222,7 +216,7 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Jul 14, 2026",
     "Carlos Mendes",
     false,
-    [personParty("dummy-3", "Sunrise Toastmasters", "Ingrid Solberg", "VP Membership")],
+    [personParty("dummy-3", "Dhrupodi Bangla Toastmasters Club", "Ingrid Solberg", "VP Membership")],
   ),
   ticket(
     "tix-12",
@@ -233,76 +227,8 @@ export const SEED_TICKETS: GlobalTicket[] = [
     "Carlos Mendes",
     false,
     [
-      personParty("dummy-3", "Sunrise Toastmasters", "Carlos Mendes", "President"),
-      personParty("dummy-3", "Sunrise Toastmasters", "Arjun Mehta", "Sergeant-at-Arms"),
+      personParty("dummy-3", "Dhrupodi Bangla Toastmasters Club", "Carlos Mendes", "President"),
+      personParty("dummy-3", "Dhrupodi Bangla Toastmasters Club", "Arjun Mehta", "Sergeant-at-Arms"),
     ],
-  ),
-
-  // Innovators Club
-  ticket(
-    "tix-13",
-    "New pathways enrollment questions from 3 members",
-    "Three members want help choosing their next Pathways level and need guidance from VPE.",
-    "Low",
-    "Jul 16, 2026",
-    "Wei Chen",
-    false,
-    [personParty("dummy-4", "Innovators Club", "Aisha Bello", "VP Education")],
-  ),
-  ticket(
-    "tix-14",
-    "Evaluator no-shows twice this month",
-    "Assigned evaluators have dropped out last-minute twice — need a backup evaluator process.",
-    "Medium",
-    "Jul 9, 2026",
-    "Wei Chen",
-    false,
-    [personParty("dummy-4", "Innovators Club", "Wei Chen", "President")],
-  ),
-  ticket(
-    "tix-15",
-    "Guest chair confirmed for Q3 recruitment push",
-    "VP PR has lined up a guest-chair rotation for the Q3 open house campaign.",
-    "Low",
-    "Jun 20, 2026",
-    "Diego Fernandez",
-    true,
-    [personParty("dummy-4", "Innovators Club", "Diego Fernandez", "VP Public Relations")],
-  ),
-
-  // Voices of Change
-  ticket(
-    "tix-16",
-    "Club at risk of falling below charter minimum",
-    "Active membership has dropped to 11, close to the charter-strength floor. Needs an intervention plan.",
-    "High",
-    "Jul 22, 2026",
-    "Isabel Duarte",
-    false,
-    [clubParty("dummy-5", "Voices of Change")],
-  ),
-  ticket(
-    "tix-17",
-    "Requesting Area Director visit to help recruitment",
-    "Officers have asked for an Area Director visit to help energize a recruitment push next quarter, and flagged it up the chain too.",
-    "High",
-    "Jul 20, 2026",
-    "Isabel Duarte",
-    false,
-    [
-      personParty("dummy-5", "Voices of Change", "Isabel Duarte", "President"),
-      personParty("dummy-5", "Voices of Change", "Zara Ahmed", "VP Public Relations"),
-      divisionParty(),
-    ],
-  ),
-  ticket(
-    "tix-18",
-    "Treasurer report overdue for June",
-    "June's financial report hasn't been submitted yet — following up with the Treasurer.",
-    "Medium",
-    "Jul 10, 2026",
-    "Isabel Duarte",
-    false,
-    [personParty("dummy-5", "Voices of Change", "Felix Nowak", "Treasurer")],
   ),
 ];

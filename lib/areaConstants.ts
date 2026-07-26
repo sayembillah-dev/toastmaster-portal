@@ -80,7 +80,7 @@ export const AREA_NAME = "Area 12";
 export const AREA_DIVISION = "Division B";
 export const DIVISION_DIRECTOR_LABEL = `${AREA_DIVISION} Director`;
 
-export const AREA_CLUBS_STORAGE_KEY = "ntc_area_clubs_v5";
+export const AREA_CLUBS_STORAGE_KEY = "ntc_area_clubs_v6";
 
 export const SEED_AREA_CLUBS: AreaClub[] = [
   {
@@ -102,8 +102,8 @@ export const SEED_AREA_CLUBS: AreaClub[] = [
   },
   {
     id: "dummy-1",
-    name: "Riverside Speakers",
-    clubNumber: "00587213",
+    name: "100X Toastmaster Club",
+    clubNumber: "7550630",
     status: "President's Distinguished",
     memberCount: 31,
     goalMemberCount: 20,
@@ -134,8 +134,8 @@ export const SEED_AREA_CLUBS: AreaClub[] = [
   },
   {
     id: "dummy-2",
-    name: "Downtown Communicators",
-    clubNumber: "00549871",
+    name: "Legacy Leaders Toastmasters",
+    clubNumber: "28680418",
     status: "Select Distinguished",
     memberCount: 22,
     goalMemberCount: 20,
@@ -165,8 +165,8 @@ export const SEED_AREA_CLUBS: AreaClub[] = [
   },
   {
     id: "dummy-3",
-    name: "Sunrise Toastmasters",
-    clubNumber: "00563209",
+    name: "Dhrupodi Bangla Toastmasters Club",
+    clubNumber: "7888866",
     status: "Not Distinguished",
     memberCount: 14,
     goalMemberCount: 20,
@@ -193,67 +193,6 @@ export const SEED_AREA_CLUBS: AreaClub[] = [
       ["Arjun Mehta", "Sergeant-at-Arms", true],
     ]),
     roleActivity: roleActivityFrom([48, 55, 30, 25, 60, 35, 40]),
-  },
-  {
-    id: "dummy-4",
-    name: "Innovators Club",
-    clubNumber: "00591044",
-    status: "Distinguished",
-    memberCount: 19,
-    goalMemberCount: 20,
-    meetingDay: "Monday",
-    meetingTime: "7:30 PM",
-    location: "Tech Park Auditorium",
-    guestRetention: 51,
-    roleFulfillmentHealth: 70,
-    meetings: [
-      { id: "m1", label: "Jun 1, 2026", present: 13, total: 19 },
-      { id: "m2", label: "Jun 8, 2026", present: 12, total: 19 },
-      { id: "m3", label: "Jun 15, 2026", present: 14, total: 19 },
-      { id: "m4", label: "Jun 22, 2026", present: 11, total: 19 },
-      { id: "m5", label: "Jun 29, 2026", present: 13, total: 19 },
-      { id: "m6", label: "Jul 6, 2026", present: 14, total: 19 },
-    ],
-    members: buildMembers("dummy-4", [
-      ["Wei Chen", "President", true],
-      ["Aisha Bello", "VP Education", true],
-      ["Diego Fernandez", "VP Public Relations", true],
-      ["Naomi Cohen", "VP Membership", false],
-      ["Karim Aziz", "Secretary", true],
-      ["Lucia Moretti", "Treasurer", true],
-      ["Samuel Oduya", "Sergeant-at-Arms", false],
-    ]),
-    roleActivity: roleActivityFrom([70, 66, 58, 50, 74, 68, 62]),
-  },
-  {
-    id: "dummy-5",
-    name: "Voices of Change",
-    clubNumber: "00578650",
-    status: "Not Distinguished",
-    memberCount: 11,
-    goalMemberCount: 20,
-    meetingDay: "Friday",
-    meetingTime: "5:30 PM",
-    location: "Westside Public Library",
-    guestRetention: 22,
-    roleFulfillmentHealth: 45,
-    meetings: [
-      { id: "m1", label: "Jun 5, 2026", present: 4, total: 11 },
-      { id: "m2", label: "Jun 12, 2026", present: 3, total: 11 },
-      { id: "m3", label: "Jun 19, 2026", present: 4, total: 11 },
-      { id: "m4", label: "Jun 26, 2026", present: 3, total: 11 },
-      { id: "m5", label: "Jul 3, 2026", present: 4, total: 11 },
-      { id: "m6", label: "Jul 10, 2026", present: 3, total: 11 },
-    ],
-    members: buildMembers("dummy-5", [
-      ["Isabel Duarte", "President", false],
-      ["Noah Kim", "VP Education", false],
-      ["Zara Ahmed", "VP Public Relations", false],
-      ["Tobias Weber", "VP Membership", true],
-      ["Ruth Adeyemi", "Secretary", false],
-      ["Felix Nowak", "Treasurer", false],
-    ]),
-    roleActivity: roleActivityFrom([35, 28, 20, 40, 30, 22, 33]),
   },
 ];
 

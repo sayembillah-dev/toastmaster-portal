@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/clientApi";
 import { qk } from "@/lib/queryKeys";
-import type { GuestInput, GuestUpdateInput } from "@/lib/validation";
+import type { GuestInput, GuestUpdateInput, CommunicationLogEntryInput } from "@/lib/validation";
 
 export function useGuests() {
   return useQuery({
@@ -44,5 +44,28 @@ export function useDeleteGuest() {
   return useMutation({
     mutationFn: (id: string) => api.guests.remove(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.guests.all }),
+  });
+}
+
+export function useAddGuestLog(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CommunicationLogEntryInput) => api.guests.addLog(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.guests.all });
+      qc.invalidateQueries({ queryKey: qk.guests.detail(id) });
+    },
+  });
+}
+
+export function useConvertGuest(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.guests.convert(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.guests.all });
+      qc.invalidateQueries({ queryKey: qk.guests.detail(id) });
+      qc.invalidateQueries({ queryKey: qk.members.all });
+    },
   });
 }

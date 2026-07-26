@@ -142,7 +142,8 @@ export function GuestFormDialog({ open, onOpenChange, mode, guest }: Props) {
     const onError = (err: Error) => toast.error(err.message);
 
     if (mode === "create") {
-      createGuest.mutate(payload, { onSuccess, onError });
+      // feePaid isn't part of this form — it's managed from the guest's conversion panel.
+      createGuest.mutate({ ...payload, feePaid: false }, { onSuccess, onError });
     } else {
       updateGuest.mutate(payload, { onSuccess, onError });
     }

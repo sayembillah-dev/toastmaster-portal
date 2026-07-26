@@ -14,7 +14,7 @@ import { TicketNotificationBell } from "./TicketNotificationBell";
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Members", href: "/members", icon: Users },
-  { label: "Guest Pool", href: "/guests", icon: UserSearch },
+  { label: "Guests", href: "/guests", icon: UserSearch },
   { label: "Funds", href: "/funds", icon: DollarSign },
   { label: "Tasks", href: "/tasks", icon: CheckSquare },
   { label: "Tickets", href: "/tickets", icon: Ticket },

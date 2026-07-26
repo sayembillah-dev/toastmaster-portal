@@ -14,7 +14,7 @@ import type { MemberDTO } from "@/lib/serializers";
 export function MembersScreen() {
   const { data: members, isLoading } = useMembers();
 
-  const [filters, setFilters] = useState<MemberFiltersState>({ q: "", status: "", role: "" });
+  const [filters, setFilters] = useState<MemberFiltersState>({ q: "", status: "", role: "", paymentStatus: "" });
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editTarget, setEditTarget] = useState<MemberDTO | undefined>();
@@ -25,6 +25,7 @@ export function MembersScreen() {
     let list = members;
     if (filters.status) list = list.filter((m) => m.status === filters.status);
     if (filters.role) list = list.filter((m) => m.clubRole === filters.role);
+    if (filters.paymentStatus) list = list.filter((m) => m.paymentStatus === filters.paymentStatus);
     if (filters.q) {
       const q = filters.q.toLowerCase();
       list = list.filter(
@@ -50,6 +51,7 @@ export function MembersScreen() {
   }
 
   const activeCount = members?.filter((m) => m.status === "active").length ?? 0;
+  const unpaidCount = members?.filter((m) => m.paymentStatus === "unpaid").length ?? 0;
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -59,7 +61,7 @@ export function MembersScreen() {
           <h2 className="text-2xl font-bold">Members</h2>
           {members && (
             <p className="text-sm text-muted-foreground mt-0.5">
-              {members.length} total · {activeCount} active
+              {members.length} total · {activeCount} active · {unpaidCount} unpaid
             </p>
           )}
         </div>

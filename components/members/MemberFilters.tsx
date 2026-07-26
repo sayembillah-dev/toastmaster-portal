@@ -9,12 +9,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
-import { CLUB_ROLES, MEMBER_STATUSES } from "@/lib/memberConstants";
+import { CLUB_ROLES, MEMBER_STATUSES, MEMBER_PAYMENT_STATUSES, MEMBER_PAYMENT_LABELS } from "@/lib/memberConstants";
 
 export type MemberFiltersState = {
   q: string;
   status: string;
   role: string;
+  paymentStatus: string;
 };
 
 interface Props {
@@ -64,6 +65,23 @@ export function MemberFilters({ filters, onChange }: Props) {
           {CLUB_ROLES.map((r) => (
             <SelectItem key={r} value={r}>
               {r}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={filters.paymentStatus}
+        onValueChange={(v) => onChange({ ...filters, paymentStatus: !v || v === "all" ? "" : v })}
+      >
+        <SelectTrigger className="w-full sm:w-36">
+          <SelectValue placeholder="Dues" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All dues</SelectItem>
+          {MEMBER_PAYMENT_STATUSES.map((s) => (
+            <SelectItem key={s} value={s}>
+              {MEMBER_PAYMENT_LABELS[s]}
             </SelectItem>
           ))}
         </SelectContent>

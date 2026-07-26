@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Users, Clock, MapPin, Star, CalendarCheck, Percent } from "lucide-react";
+import { Building2, Users, Star, CalendarCheck, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STATUS_BADGE_STYLES, type AreaClub } from "@/lib/areaConstants";
 import { useClubMeetingStats } from "@/hooks/useClubMeetingStats";
@@ -29,13 +29,13 @@ export function AreaClubCard({ club }: { club: AreaClub }) {
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <div className="p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shrink-0">
+                <div className="p-1.5 rounded-lg bg-muted text-muted-foreground shrink-0">
                   <Building2 className="h-4 w-4" />
                 </div>
                 <span className="truncate">{club.name}</span>
               </CardTitle>
               {club.isHomeClub && (
-                <Badge variant="outline" className="shrink-0 gap-1 border-indigo-200 text-indigo-600">
+                <Badge variant="outline" className="shrink-0 gap-1 border-primary/30 text-primary">
                   <Star className="h-3 w-3" />
                   Your Club
                 </Badge>
@@ -86,18 +86,6 @@ export function AreaClubCard({ club }: { club: AreaClub }) {
                 {club.memberCount}
               </span>
               <span className="text-muted-foreground">/ {club.goalMemberCount} members</span>
-            </div>
-
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Clock className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">
-                {club.meetingDay}s, {club.meetingTime}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <MapPin className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{club.location}</span>
             </div>
           </CardContent>
         </Card>

@@ -5,6 +5,7 @@ import { useGuests } from "@/hooks/useGuests";
 import { GuestCard } from "./GuestCard";
 import { GuestFormDialog } from "./GuestFormDialog";
 import { DeleteGuestDialog } from "./DeleteGuestDialog";
+import { GuestPipelineBoard } from "./GuestPipelineBoard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,9 +16,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Plus, Search, Link2, Check } from "lucide-react";
+import { Users, Plus, Search, Link2, Check, LayoutGrid, Kanban } from "lucide-react";
 import { FOLLOW_UP_STATUSES, FOLLOW_UP_LABELS } from "@/lib/guestConstants";
 import type { GuestDTO } from "@/lib/serializers";
+import { cn } from "@/lib/utils";
+
+type ViewMode = "list" | "pipeline";
 
 export function GuestsScreen() {
   const { data: guests, isLoading } = useGuests();
@@ -29,6 +33,7 @@ export function GuestsScreen() {
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editTarget, setEditTarget] = useState<GuestDTO | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<GuestDTO | undefined>();
+  const [view, setView] = useState<ViewMode>("list");
 
   const filtered = useMemo(() => {
     if (!guests) return [];
@@ -71,7 +76,7 @@ export function GuestsScreen() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Guest Pool</h2>
+          <h2 className="text-2xl font-bold">Guests</h2>
           {guests && (
             <p className="text-sm text-muted-foreground mt-0.5">
               {guests.length} total guest{guests.length !== 1 ? "s" : ""}
@@ -101,22 +106,48 @@ export function GuestsScreen() {
             className="pl-9"
           />
         </div>
-        <Select
-          value={statusFilter}
-          onValueChange={(v) => setStatusFilter(!v || v === "all" ? "" : v)}
-        >
-          <SelectTrigger className="w-full sm:w-44">
-            <SelectValue placeholder="Follow-up status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {FOLLOW_UP_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {FOLLOW_UP_LABELS[s]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {view === "list" && (
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(!v || v === "all" ? "" : v)}
+          >
+            <SelectTrigger className="w-full sm:w-44">
+              <SelectValue placeholder="Follow-up status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {FOLLOW_UP_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {FOLLOW_UP_LABELS[s]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <div className="flex items-center border rounded-md p-0.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setView("list")}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors",
+              view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <LayoutGrid className="h-3.5 w-3.5" />
+            List
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("pipeline")}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors",
+              view === "pipeline" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Kanban className="h-3.5 w-3.5" />
+            Kanban
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -142,6 +173,8 @@ export function GuestsScreen() {
             <p className="font-medium">No guests match your filters</p>
           )}
         </div>
+      ) : view === "pipeline" ? (
+        <GuestPipelineBoard guests={filtered} />
       ) : (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((guest) => (

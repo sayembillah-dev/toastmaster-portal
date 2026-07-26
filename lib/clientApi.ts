@@ -92,6 +92,15 @@ export const api = {
         return res.json() as Promise<GuestDTO>;
       });
     },
+
+    addLog: (id: string, data: { channel: string; message: string }) =>
+      apiFetch<GuestDTO>(`/api/guests/${id}/log`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    convert: (id: string) =>
+      apiFetch<MemberDTO>(`/api/guests/${id}/convert`, { method: "POST" }),
   },
 
   funds: {

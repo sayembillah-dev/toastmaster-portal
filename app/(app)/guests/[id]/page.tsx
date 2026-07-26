@@ -6,6 +6,9 @@ import { MemberAvatar } from "@/components/shared/Avatar";
 import { GuestStatusBadge } from "@/components/guests/GuestStatusBadge";
 import { GuestFormDialog } from "@/components/guests/GuestFormDialog";
 import { DeleteGuestDialog } from "@/components/guests/DeleteGuestDialog";
+import { GuestConversionPanel } from "@/components/guests/GuestConversionPanel";
+import { GuestCommunicationLog } from "@/components/guests/GuestCommunicationLog";
+import { GuestAttendanceHistory } from "@/components/guests/GuestAttendanceHistory";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -45,7 +48,7 @@ export default function GuestProfilePage({ params }: Props) {
       <div className="p-6 text-center text-muted-foreground">
         <p>Guest not found.</p>
         <Button variant="link" onClick={() => router.push("/guests")}>
-          Back to guest pool
+          Back to Guests
         </Button>
       </div>
     );
@@ -57,7 +60,7 @@ export default function GuestProfilePage({ params }: Props) {
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       <Button variant="ghost" size="sm" onClick={() => router.push("/guests")} className="gap-2 -ml-2">
         <ArrowLeft className="h-4 w-4" />
-        Guest Pool
+        Guests
       </Button>
 
       <div className="flex items-start justify-between gap-4">
@@ -141,6 +144,15 @@ export default function GuestProfilePage({ params }: Props) {
           </div>
         </>
       )}
+
+      <Separator />
+      <GuestConversionPanel guest={guest} />
+
+      <Separator />
+      <GuestAttendanceHistory entries={guest.attendanceLog} />
+
+      <Separator />
+      <GuestCommunicationLog guestId={guest.id} entries={guest.communicationLog} />
 
       <GuestFormDialog open={editOpen} onOpenChange={setEditOpen} mode="edit" guest={guest} />
       <DeleteGuestDialog

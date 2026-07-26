@@ -16,6 +16,25 @@ export const FOLLOW_UP_LABELS: Record<FollowUpStatus, string> = {
   joined: "Joined",
 };
 
+// How a follow-up touchpoint with a guest happened.
+export const COMMUNICATION_CHANNELS = [
+  "call",
+  "whatsapp",
+  "email",
+  "in_person",
+  "other",
+] as const;
+
+export type CommunicationChannel = (typeof COMMUNICATION_CHANNELS)[number];
+
+export const COMMUNICATION_CHANNEL_LABELS: Record<CommunicationChannel, string> = {
+  call: "Phone Call",
+  whatsapp: "WhatsApp",
+  email: "Email",
+  in_person: "In Person",
+  other: "Other",
+};
+
 // Roles a guest can express interest in trying at a meeting.
 export const GUEST_PREFERRED_ROLES = [
   "Prepared Speaker",

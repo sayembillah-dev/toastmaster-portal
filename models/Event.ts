@@ -7,6 +7,8 @@ interface IEventAttendee {
   phone: string;
   guestId: string;
   notes: string;
+  present: boolean;
+  confirmedAt?: Date;
 }
 
 interface IMemberAttendance {
@@ -93,6 +95,8 @@ const AttendeeSchema = new Schema<IEventAttendee>(
     phone: { type: String, trim: true, maxlength: 20, default: "" },
     guestId: { type: String, default: "" },
     notes: { type: String, trim: true, maxlength: 300, default: "" },
+    present: { type: Boolean, default: false },
+    confirmedAt: { type: Date },
   },
   { _id: false },
 );

@@ -40,11 +40,21 @@ export function TicketNotificationBell({ scope }: Props) {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className="relative flex items-center justify-center rounded-md border h-8 w-8 hover:bg-accent cursor-pointer">
-          <Bell className="h-4 w-4 text-muted-foreground" />
+        <DropdownMenuTrigger
+          className={cn(
+            "relative flex items-center justify-center rounded-full h-9 w-9 border transition-colors cursor-pointer",
+            relevant.length > 0
+              ? "border-destructive/20 bg-destructive/5 hover:bg-destructive/10"
+              : "hover:bg-accent",
+          )}
+        >
+          <Bell className={cn("h-4 w-4", relevant.length > 0 ? "text-foreground" : "text-muted-foreground")} />
           {relevant.length > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground">
-              {relevant.length > 9 ? "9+" : relevant.length}
+            <span className="absolute -top-1 -right-1 flex h-4.5 min-w-4.5 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive/60 opacity-75" />
+              <span className="relative inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-destructive-foreground ring-2 ring-background">
+                {relevant.length > 9 ? "9+" : relevant.length}
+              </span>
             </span>
           )}
         </DropdownMenuTrigger>

@@ -1,11 +1,14 @@
 "use client";
 
 import { use, useState } from "react";
+import Link from "next/link";
 import { useMember } from "@/hooks/useMembers";
 import { MemberAvatar } from "@/components/shared/Avatar";
 import { MemberStatusBadge } from "@/components/members/MemberStatusBadge";
 import { MemberFormDialog } from "@/components/members/MemberFormDialog";
 import { DeleteMemberDialog } from "@/components/members/DeleteMemberDialog";
+import { MemberActivityLog } from "@/components/members/MemberActivityLog";
+import { MemberPaymentToggle } from "@/components/members/MemberPaymentToggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -71,8 +74,9 @@ export default function MemberProfilePage({ params }: Props) {
           <div>
             <h2 className="text-2xl font-bold">{member.fullName}</h2>
             <p className="text-muted-foreground">{member.clubRole}</p>
-            <div className="mt-1">
+            <div className="mt-1 flex items-center gap-1.5">
               <MemberStatusBadge status={member.status} />
+              <MemberPaymentToggle id={member.id} status={member.paymentStatus} />
             </div>
           </div>
         </div>
@@ -125,6 +129,25 @@ export default function MemberProfilePage({ params }: Props) {
             <h3 className="text-sm font-semibold text-muted-foreground mb-2">Bio</h3>
             <p className="text-sm whitespace-pre-wrap">{member.bio}</p>
           </div>
+        </>
+      )}
+
+      {member.convertedFromGuestId && (
+        <>
+          <Separator />
+          <p className="text-xs text-muted-foreground">
+            Joined as a converted guest lead —{" "}
+            <Link href={`/guests/${member.convertedFromGuestId}`} className="text-primary hover:underline">
+              view original guest record
+            </Link>
+          </p>
+        </>
+      )}
+
+      {member.activityLog.length > 0 && (
+        <>
+          <Separator />
+          <MemberActivityLog entries={member.activityLog} />
         </>
       )}
 

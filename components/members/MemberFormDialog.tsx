@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useCreateMember, useUpdateMember } from "@/hooks/useMembers";
 import { api } from "@/lib/clientApi";
-import { CLUB_ROLES, MEMBER_STATUSES, type ClubRole, type MemberStatus } from "@/lib/memberConstants";
+import { CLUB_ROLES, MEMBER_STATUSES, MEMBER_PAYMENT_STATUSES, MEMBER_PAYMENT_LABELS, type ClubRole, type MemberStatus, type MemberPaymentStatus } from "@/lib/memberConstants";
 import { MemberAvatar } from "@/components/shared/Avatar";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
@@ -43,6 +43,7 @@ type FormState = {
   joinDate: string;
   status: MemberStatus;
   clubRole: ClubRole;
+  paymentStatus: MemberPaymentStatus;
   bio: string;
 };
 
@@ -54,6 +55,7 @@ const EMPTY_FORM: FormState = {
   joinDate: new Date().toISOString().split("T")[0],
   status: "active",
   clubRole: "Member",
+  paymentStatus: "unpaid",
   bio: "",
 };
 
@@ -77,6 +79,7 @@ export function MemberFormDialog({ open, onOpenChange, mode, member }: Props) {
           joinDate: member.joinDate.split("T")[0],
           status: member.status,
           clubRole: member.clubRole,
+          paymentStatus: member.paymentStatus,
           bio: member.bio,
         });
         setPhotoPreview(member.photoUrl || "");
@@ -259,6 +262,26 @@ export function MemberFormDialog({ open, onOpenChange, mode, member }: Props) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Payment status */}
+          <div className="space-y-1.5">
+            <Label>Dues payment status</Label>
+            <Select
+              value={form.paymentStatus}
+              onValueChange={(v) => { if (v) set("paymentStatus", v as MemberPaymentStatus); }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MEMBER_PAYMENT_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {MEMBER_PAYMENT_LABELS[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Bio */}

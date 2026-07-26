@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { CLUB_ROLES, MEMBER_STATUSES } from "@/lib/memberConstants";
-import { FOLLOW_UP_STATUSES } from "@/lib/guestConstants";
+import { CLUB_ROLES, MEMBER_STATUSES, MEMBER_PAYMENT_STATUSES } from "@/lib/memberConstants";
+import { FOLLOW_UP_STATUSES, COMMUNICATION_CHANNELS } from "@/lib/guestConstants";
 import { TRANSACTION_TYPES, ALL_CATEGORIES } from "@/lib/fundConstants";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/taskConstants";
 
@@ -12,6 +12,7 @@ export const memberSchema = z.object({
   joinDate: z.string().min(1, "Join date is required"),
   status: z.enum(MEMBER_STATUSES),
   clubRole: z.enum(CLUB_ROLES),
+  paymentStatus: z.enum(MEMBER_PAYMENT_STATUSES).default("unpaid"),
   bio: z.string().max(1000).trim().optional().or(z.literal("")),
 });
 
@@ -31,12 +32,20 @@ export const guestSchema = z.object({
   visitDate: z.string().min(1, "Visit date is required"),
   followUpStatus: z.enum(FOLLOW_UP_STATUSES),
   notes: z.string().max(1000).trim().optional().or(z.literal("")),
+  feePaid: z.boolean().default(false),
 });
 
 export const guestUpdateSchema = guestSchema.partial();
 
 export type GuestInput = z.infer<typeof guestSchema>;
 export type GuestUpdateInput = z.infer<typeof guestUpdateSchema>;
+
+export const communicationLogEntrySchema = z.object({
+  channel: z.enum(COMMUNICATION_CHANNELS),
+  message: z.string().min(1, "Message is required").max(500).trim(),
+});
+
+export type CommunicationLogEntryInput = z.infer<typeof communicationLogEntrySchema>;
 
 export const transactionSchema = z.object({
   type: z.enum(TRANSACTION_TYPES),
@@ -76,6 +85,8 @@ const attendeeSchema = z.object({
   phone: z.string().max(20).trim().optional().or(z.literal("")),
   guestId: z.string().optional().or(z.literal("")),
   notes: z.string().max(300).trim().optional().or(z.literal("")),
+  present: z.boolean().default(false),
+  confirmedAt: z.string().optional().or(z.literal("")),
 });
 
 export type AttendeeInput = z.infer<typeof attendeeSchema>;

@@ -250,9 +250,11 @@ export const SEED_AREA_CLUBS: AreaClub[] = [
   },
 ];
 
+// Single-hue scale (green = achieved) instead of a different color per tier —
+// intensity signals rank so the dashboard doesn't turn into a rainbow of badges.
 export const STATUS_BADGE_STYLES: Record<DistinguishedStatus, string> = {
-  "President's Distinguished": "bg-violet-100 text-violet-700 border-violet-200",
-  "Select Distinguished": "bg-blue-100 text-blue-700 border-blue-200",
-  Distinguished: "bg-green-100 text-green-700 border-green-200",
+  "President's Distinguished": "bg-green-600 text-white border-transparent",
+  "Select Distinguished": "bg-green-100 text-green-700 border-green-200",
+  Distinguished: "bg-transparent text-green-700 border-green-200",
   "Not Distinguished": "bg-muted text-muted-foreground border-transparent",
 };

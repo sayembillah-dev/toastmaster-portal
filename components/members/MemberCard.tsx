@@ -5,6 +5,7 @@ import { Phone, Mail, Calendar, MoreVertical, Pencil, Trash2 } from "lucide-reac
 import { Card, CardContent } from "@/components/ui/card";
 import { MemberAvatar } from "@/components/shared/Avatar";
 import { MemberStatusBadge } from "./MemberStatusBadge";
+import { MemberPaymentBadge } from "./MemberPaymentBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,8 +53,11 @@ export function MemberCard({ member, onEdit, onDelete }: Props) {
           </DropdownMenu>
         </div>
 
-        <div className="mt-3 space-y-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           <MemberStatusBadge status={member.status} />
+          <MemberPaymentBadge status={member.paymentStatus} />
+        </div>
+        <div className="mt-1.5 space-y-1.5">
           {member.membershipNumber && (
             <p className="text-xs text-muted-foreground"># {member.membershipNumber}</p>
           )}

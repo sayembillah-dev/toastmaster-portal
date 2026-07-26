@@ -40,7 +40,7 @@ export function DeleteGuestDialog({ guest, open, onOpenChange, onDeleted }: Prop
         <DialogHeader>
           <DialogTitle>Remove guest?</DialogTitle>
           <DialogDescription>
-            This will permanently remove <strong>{guest.fullName}</strong> from the guest pool.
+            This will permanently remove <strong>{guest.fullName}</strong> from Guests.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

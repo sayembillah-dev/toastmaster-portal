@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Search, Users, UserPlus, X } from "lucide-react";
+import { Plus, Trash2, Search, Users, UserPlus, X, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,14 @@ import type { EventFormState, UpdateFormFn } from "./eventTabTypes";
 
 type Props = { form: EventFormState; update: UpdateFormFn };
 
-const EMPTY_MANUAL: Omit<AttendeeDTO, "guestId"> = { name: "", email: "", phone: "", notes: "" };
+const EMPTY_MANUAL: Omit<AttendeeDTO, "guestId"> = {
+  name: "",
+  email: "",
+  phone: "",
+  notes: "",
+  present: false,
+  confirmedAt: "",
+};
 
 export function GuestListTab({ form, update }: Props) {
   const [showPoolDialog, setShowPoolDialog] = useState(false);
@@ -28,13 +35,37 @@ export function GuestListTab({ form, update }: Props) {
   const removeAttendee = (i: number) =>
     update({ attendees: attendees.filter((_, idx) => idx !== i) });
 
+  const togglePresent = (i: number) =>
+    update(
+      {
+        attendees: attendees.map((a, idx) =>
+          idx === i
+            ? {
+                ...a,
+                present: !a.present,
+                confirmedAt: !a.present ? new Date().toISOString() : a.confirmedAt,
+              }
+            : a,
+        ),
+      },
+      true,
+    );
+
   const addFromPool = (guest: (typeof guestPool)[number]) => {
     const already = attendees.some((a) => a.guestId === guest.id);
     if (already) return;
     update({
       attendees: [
         ...attendees,
-        { name: guest.fullName, email: guest.email, phone: guest.phone, guestId: guest.id, notes: "" },
+        {
+          name: guest.fullName,
+          email: guest.email,
+          phone: guest.phone,
+          guestId: guest.id,
+          notes: "",
+          present: false,
+          confirmedAt: "",
+        },
       ],
     });
     setShowPoolDialog(false);
@@ -67,6 +98,7 @@ export function GuestListTab({ form, update }: Props) {
           <h3 className="font-semibold text-sm">Guest List</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             {attendees.length} {attendees.length === 1 ? "attendee" : "attendees"} registered
+            {attendees.length > 0 && ` · ${attendees.filter((a) => a.present).length} confirmed present`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -162,7 +194,10 @@ export function GuestListTab({ form, update }: Props) {
       {attendees.length > 0 && (
         <div className="border rounded-lg overflow-hidden divide-y">
           {attendees.map((a, i) => (
-            <div key={`attendee-${i}`} className="flex items-center gap-3 px-4 py-3">
+            <div
+              key={`attendee-${i}`}
+              className={`flex items-center gap-3 px-4 py-3 ${a.present ? "bg-green-50/50 dark:bg-green-950/20" : ""}`}
+            >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm truncate">{a.name}</span>
@@ -182,6 +217,17 @@ export function GuestListTab({ form, update }: Props) {
               <Button
                 type="button"
                 variant="ghost"
+                size="sm"
+                className={`h-7 gap-1.5 shrink-0 text-xs ${a.present ? "text-green-600 hover:text-green-700" : "text-muted-foreground"}`}
+                onClick={() => togglePresent(i)}
+                title={a.guestId ? "Confirming logs this to the guest's attendance history" : "Mark attendance"}
+              >
+                {a.present ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
+                {a.present ? "Present" : "Confirm"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
                 size="icon"
                 className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
                 onClick={() => removeAttendee(i)}
@@ -198,7 +244,7 @@ export function GuestListTab({ form, update }: Props) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
           <div className="bg-background rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]">
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="font-semibold text-sm">Add from Guest Pool</h2>
+              <h2 className="font-semibold text-sm">Add from Guests</h2>
               <button
                 type="button"
                 onClick={() => { setShowPoolDialog(false); setPoolSearch(""); }}

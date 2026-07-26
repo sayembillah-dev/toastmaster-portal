@@ -1,7 +1,14 @@
-import type { ClubRole, MemberStatus } from "@/lib/memberConstants";
-import type { FollowUpStatus } from "@/lib/guestConstants";
+import type { ClubRole, MemberStatus, MemberPaymentStatus, ActivityLogType } from "@/lib/memberConstants";
+import type { FollowUpStatus, CommunicationChannel } from "@/lib/guestConstants";
 import type { TransactionType, TransactionCategory } from "@/lib/fundConstants";
 import type { TaskPriority, TaskStatus } from "@/lib/taskConstants";
+
+export type ActivityLogEntryDTO = {
+  type: ActivityLogType;
+  message: string;
+  relatedEventId: string;
+  occurredAt: string;
+};
 
 export type LeanMember = {
   _id: unknown;
@@ -11,10 +18,13 @@ export type LeanMember = {
   phone: string;
   status: MemberStatus;
   clubRole: ClubRole;
+  paymentStatus?: MemberPaymentStatus;
   joinDate: Date;
   bio: string;
   photoUrl: string;
   photoPublicId: string;
+  activityLog?: { type?: ActivityLogType; message?: string; relatedEventId?: string; occurredAt?: Date }[];
+  convertedFromGuestId?: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -27,9 +37,12 @@ export type MemberDTO = {
   phone: string;
   status: MemberStatus;
   clubRole: ClubRole;
+  paymentStatus: MemberPaymentStatus;
   joinDate: string;
   bio: string;
   photoUrl: string;
+  activityLog: ActivityLogEntryDTO[];
+  convertedFromGuestId: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -43,15 +56,38 @@ export function serializeMember(m: LeanMember): MemberDTO {
     phone: m.phone ?? "",
     status: m.status,
     clubRole: m.clubRole,
+    paymentStatus: m.paymentStatus ?? "unpaid",
     joinDate: m.joinDate instanceof Date ? m.joinDate.toISOString() : String(m.joinDate),
     bio: m.bio ?? "",
     photoUrl: m.photoUrl ?? "",
+    activityLog: (m.activityLog ?? [])
+      .map((a) => ({
+        type: (a?.type ?? "note") as ActivityLogType,
+        message: a?.message ?? "",
+        relatedEventId: a?.relatedEventId ?? "",
+        occurredAt: a?.occurredAt instanceof Date ? a.occurredAt.toISOString() : String(a?.occurredAt ?? ""),
+      }))
+      .sort((a, b) => (a.occurredAt < b.occurredAt ? 1 : -1)),
+    convertedFromGuestId: m.convertedFromGuestId ?? "",
     createdAt: m.createdAt instanceof Date ? m.createdAt.toISOString() : String(m.createdAt),
     updatedAt: m.updatedAt instanceof Date ? m.updatedAt.toISOString() : String(m.updatedAt),
   };
 }
 
 // ── Guest ────────────────────────────────────────────────────────────────────
+
+export type CommunicationLogEntryDTO = {
+  channel: CommunicationChannel;
+  message: string;
+  loggedAt: string;
+};
+
+export type GuestAttendanceEntryDTO = {
+  eventId: string;
+  eventTitle: string;
+  eventDate: string;
+  confirmedAt: string;
+};
 
 export type LeanGuest = {
   _id: unknown;
@@ -67,6 +103,11 @@ export type LeanGuest = {
   notes: string;
   photoUrl: string;
   photoPublicId: string;
+  communicationLog?: { channel?: CommunicationChannel; message?: string; loggedAt?: Date }[];
+  attendanceLog?: { eventId?: string; eventTitle?: string; eventDate?: Date; confirmedAt?: Date }[];
+  feePaid?: boolean;
+  convertedToMemberId?: string;
+  convertedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -84,6 +125,11 @@ export type GuestDTO = {
   followUpStatus: FollowUpStatus;
   notes: string;
   photoUrl: string;
+  communicationLog: CommunicationLogEntryDTO[];
+  attendanceLog: GuestAttendanceEntryDTO[];
+  feePaid: boolean;
+  convertedToMemberId: string;
+  convertedAt: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -102,6 +148,24 @@ export function serializeGuest(g: LeanGuest): GuestDTO {
     followUpStatus: g.followUpStatus,
     notes: g.notes ?? "",
     photoUrl: g.photoUrl ?? "",
+    communicationLog: (g.communicationLog ?? [])
+      .map((c) => ({
+        channel: (c?.channel ?? "other") as CommunicationChannel,
+        message: c?.message ?? "",
+        loggedAt: c?.loggedAt instanceof Date ? c.loggedAt.toISOString() : String(c?.loggedAt ?? ""),
+      }))
+      .sort((a, b) => (a.loggedAt < b.loggedAt ? 1 : -1)),
+    attendanceLog: (g.attendanceLog ?? [])
+      .map((a) => ({
+        eventId: a?.eventId ?? "",
+        eventTitle: a?.eventTitle ?? "",
+        eventDate: a?.eventDate instanceof Date ? a.eventDate.toISOString() : String(a?.eventDate ?? ""),
+        confirmedAt: a?.confirmedAt instanceof Date ? a.confirmedAt.toISOString() : String(a?.confirmedAt ?? ""),
+      }))
+      .sort((a, b) => (a.confirmedAt < b.confirmedAt ? 1 : -1)),
+    feePaid: g.feePaid ?? false,
+    convertedToMemberId: g.convertedToMemberId ?? "",
+    convertedAt: g.convertedAt instanceof Date ? g.convertedAt.toISOString() : (g.convertedAt ? String(g.convertedAt) : ""),
     createdAt: g.createdAt instanceof Date ? g.createdAt.toISOString() : String(g.createdAt),
     updatedAt: g.updatedAt instanceof Date ? g.updatedAt.toISOString() : String(g.updatedAt),
   };
@@ -203,6 +267,8 @@ export type AttendeeDTO = {
   phone: string;
   guestId: string;
   notes: string;
+  present: boolean;
+  confirmedAt: string;
 };
 
 export type MemberAttendanceDTO = {
@@ -280,7 +346,7 @@ export type LeanEvent = {
   wordOfDay: WordOfDayDTO;
   joinUrl: string;
   tableTopicQuestions: (string | { text?: string; completed?: boolean })[];
-  attendees: AttendeeDTO[];
+  attendees: { name?: string; email?: string; phone?: string; guestId?: string; notes?: string; present?: boolean; confirmedAt?: Date | string }[];
   memberAttendance: MemberAttendanceDTO[];
   resources: ResourceDTO[];
   timerEntries: TimerEntryDTO[];
@@ -376,6 +442,8 @@ export function serializeEvent(e: LeanEvent): EventDTO {
       phone: a?.phone ?? "",
       guestId: a?.guestId ?? "",
       notes: a?.notes ?? "",
+      present: a?.present ?? false,
+      confirmedAt: a?.confirmedAt instanceof Date ? a.confirmedAt.toISOString() : String(a?.confirmedAt ?? ""),
     })),
     memberAttendance: (e.memberAttendance ?? []).map((a) => ({
       memberId: a?.memberId ?? "",

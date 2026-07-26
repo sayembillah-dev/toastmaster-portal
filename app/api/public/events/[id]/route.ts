@@ -1,6 +1,7 @@
 import { dbConnect } from "@/lib/db";
 import { Event } from "@/models/Event";
 import { Member } from "@/models/Member";
+import { Guest } from "@/models/Guest";
 import { serializeEvent, type LeanEvent } from "@/lib/serializers";
 import { jsonOk, jsonNotFound, jsonServerError } from "@/lib/apiHelpers";
 import { isValidObjectId } from "mongoose";
@@ -37,11 +38,23 @@ export async function GET(_req: Request, { params }: Params) {
 
     const mentors: Record<string, { bio: string; linkedinUrl: string; photoUrl: string }> = {};
     if (names.size > 0) {
-      const members = await Member.find({
-        fullName: { $in: Array.from(names).map((n) => new RegExp(`^${escapeRegExp(n)}$`, "i")) },
-      })
-        .select("fullName bio linkedinUrl photoUrl")
-        .lean();
+      const nameMatchers = Array.from(names).map((n) => new RegExp(`^${escapeRegExp(n)}$`, "i"));
+
+      // A mentor role can be filled by either a Member or a Guest (e.g. via a
+      // guest role link), so both collections need checking for bio/LinkedIn/photo.
+      const [members, guests] = await Promise.all([
+        Member.find({ fullName: { $in: nameMatchers } }).select("fullName bio linkedinUrl photoUrl").lean(),
+        Guest.find({ fullName: { $in: nameMatchers } }).select("fullName bio linkedinUrl photoUrl").lean(),
+      ]);
+      for (const g of guests) {
+        mentors[normalize(g.fullName)] = {
+          bio: g.bio ?? "",
+          linkedinUrl: g.linkedinUrl ?? "",
+          photoUrl: g.photoUrl ?? "",
+        };
+      }
+      // Members take precedence over guests on a name collision — a converted
+      // member's record is the more authoritative/current one.
       for (const m of members) {
         mentors[normalize(m.fullName)] = {
           bio: m.bio ?? "",

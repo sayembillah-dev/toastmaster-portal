@@ -9,6 +9,12 @@ interface IEventAttendee {
   notes: string;
 }
 
+interface IMemberAttendance {
+  memberId: string;
+  name: string;
+  present: boolean;
+}
+
 interface ISpeaker {
   name: string;
   speechTitle: string;
@@ -73,6 +79,7 @@ interface IEvent extends Document {
   joinUrl: string;
   tableTopicQuestions: ITableTopicQuestion[];
   attendees: IEventAttendee[];
+  memberAttendance: IMemberAttendance[];
   resources: IResource[];
   timerEntries: ITimerEntry[];
   createdAt: Date;
@@ -86,6 +93,15 @@ const AttendeeSchema = new Schema<IEventAttendee>(
     phone: { type: String, trim: true, maxlength: 20, default: "" },
     guestId: { type: String, default: "" },
     notes: { type: String, trim: true, maxlength: 300, default: "" },
+  },
+  { _id: false },
+);
+
+const MemberAttendanceSchema = new Schema<IMemberAttendance>(
+  {
+    memberId: { type: String, default: "" },
+    name: { type: String, trim: true, maxlength: 80, default: "" },
+    present: { type: Boolean, default: false },
   },
   { _id: false },
 );
@@ -184,6 +200,7 @@ const EventSchema = new Schema<IEvent>(
     joinUrl: { type: String, trim: true, maxlength: 500, default: "" },
     tableTopicQuestions: { type: [TableTopicQuestionSchema], default: [] },
     attendees: { type: [AttendeeSchema], default: [] },
+    memberAttendance: { type: [MemberAttendanceSchema], default: [] },
     resources: { type: [ResourceSchema], default: [] },
     timerEntries: { type: [TimerEntrySchema], default: [] },
     fillerWords: { type: [String], default: ["Ah", "Um", "So", "Like"] },

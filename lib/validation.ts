@@ -80,6 +80,12 @@ const attendeeSchema = z.object({
 
 export type AttendeeInput = z.infer<typeof attendeeSchema>;
 
+const memberAttendanceSchema = z.object({
+  memberId: z.string().default(""),
+  name: z.string().max(80).trim().default(""),
+  present: z.boolean().default(false),
+});
+
 const speakerSchema = z.object({
   name: z.string().max(80).trim().optional().or(z.literal("")),
   speechTitle: z.string().max(200).trim().optional().or(z.literal("")),
@@ -163,6 +169,7 @@ export const eventSchema = z.object({
     .default([]),
   joinUrl: z.string().max(500).trim().optional().or(z.literal("")),
   attendees: z.array(attendeeSchema).default([]),
+  memberAttendance: z.array(memberAttendanceSchema).default([]),
   resources: z.array(resourceSchema).default([]),
   timerEntries: z.array(timerEntrySchema).default([]),
   fillerWords: z.array(z.string().max(50).trim()).max(20).default(["Ah", "Um", "So", "Like"]),

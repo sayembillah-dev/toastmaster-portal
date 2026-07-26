@@ -205,6 +205,12 @@ export type AttendeeDTO = {
   notes: string;
 };
 
+export type MemberAttendanceDTO = {
+  memberId: string;
+  name: string;
+  present: boolean;
+};
+
 export type SpeakerDTO = {
   name: string;
   speechTitle: string;
@@ -275,6 +281,7 @@ export type LeanEvent = {
   joinUrl: string;
   tableTopicQuestions: (string | { text?: string; completed?: boolean })[];
   attendees: AttendeeDTO[];
+  memberAttendance: MemberAttendanceDTO[];
   resources: ResourceDTO[];
   timerEntries: TimerEntryDTO[];
   fillerWords: string[];
@@ -299,6 +306,7 @@ export type EventDTO = {
   joinUrl: string;
   tableTopicQuestions: TableTopicQuestionDTO[];
   attendees: AttendeeDTO[];
+  memberAttendance: MemberAttendanceDTO[];
   resources: ResourceDTO[];
   timerEntries: TimerEntryDTO[];
   fillerWords: string[];
@@ -368,6 +376,11 @@ export function serializeEvent(e: LeanEvent): EventDTO {
       phone: a?.phone ?? "",
       guestId: a?.guestId ?? "",
       notes: a?.notes ?? "",
+    })),
+    memberAttendance: (e.memberAttendance ?? []).map((a) => ({
+      memberId: a?.memberId ?? "",
+      name: a?.name ?? "",
+      present: a?.present ?? false,
     })),
     resources: (e.resources ?? []).map((r) => ({
       title: r?.title ?? "",

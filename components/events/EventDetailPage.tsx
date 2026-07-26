@@ -8,6 +8,7 @@ import { useUpdateEvent } from "@/hooks/useEvents";
 import { AgendaTab } from "./AgendaTab";
 import { TableTopicsTab } from "./TableTopicsTab";
 import { GuestListTab } from "./GuestListTab";
+import { AttendanceTab } from "./AttendanceTab";
 import { ResourcesTab } from "./ResourcesTab";
 import { TimerReportTab } from "./TimerReportTab";
 import { AhCounterTab } from "./AhCounterTab";
@@ -23,12 +24,13 @@ function normalizeQuestion(q: unknown): TableTopicQuestionDTO {
   return { text: String(obj?.text ?? ""), completed: Boolean(obj?.completed) };
 }
 
-type TabKey = "agenda" | "tableTopics" | "guestList" | "resources" | "timerReport" | "ahCounter";
+type TabKey = "agenda" | "tableTopics" | "guestList" | "attendance" | "resources" | "timerReport" | "ahCounter";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "agenda", label: "Meeting Agenda" },
   { key: "tableTopics", label: "Table Topics" },
   { key: "guestList", label: "Guest List" },
+  { key: "attendance", label: "Attendance" },
   { key: "resources", label: "Resources" },
   { key: "timerReport", label: "Timer Report" },
   { key: "ahCounter", label: "Ah Counter" },
@@ -54,6 +56,7 @@ function initForm(event: EventDTO): EventFormState {
     joinUrl: event.joinUrl ?? "",
     tableTopicQuestions: (event.tableTopicQuestions as unknown[]).map(normalizeQuestion),
     attendees: event.attendees ?? [],
+    memberAttendance: event.memberAttendance ?? [],
     resources: event.resources ?? [],
     timerEntries: Array.isArray(event.timerEntries) ? event.timerEntries : [],
     fillerWords: event.fillerWords ?? ["Ah", "Um", "So", "Like"],
@@ -77,6 +80,7 @@ function buildPayload(form: EventFormState) {
     joinUrl: form.joinUrl,
     tableTopicQuestions: form.tableTopicQuestions.map(normalizeQuestion),
     attendees: form.attendees,
+    memberAttendance: form.memberAttendance,
     resources: form.resources,
     timerEntries: form.timerEntries,
     fillerWords: form.fillerWords,
@@ -276,6 +280,7 @@ export function EventDetailPage({ event }: Props) {
         {tab === "agenda" && <AgendaTab form={form} update={update} />}
         {tab === "tableTopics" && <TableTopicsTab form={form} update={update} />}
         {tab === "guestList" && <GuestListTab form={form} update={update} />}
+        {tab === "attendance" && <AttendanceTab form={form} update={update} />}
         {tab === "resources" && <ResourcesTab form={form} update={update} />}
         {tab === "timerReport" && <TimerReportTab form={form} update={update} />}
         {tab === "ahCounter" && <AhCounterTab form={form} update={update} />}

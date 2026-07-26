@@ -1,5 +1,5 @@
 import type { AgendaRoleKey } from "@/lib/eventConstants";
-import type { SpeakerDTO, AttendeeDTO, ResourceDTO, TimerEntryDTO, TableTopicQuestionDTO, AhCounterEntryDTO } from "@/lib/serializers";
+import type { SpeakerDTO, AttendeeDTO, MemberAttendanceDTO, ResourceDTO, TimerEntryDTO, TableTopicQuestionDTO, AhCounterEntryDTO } from "@/lib/serializers";
 
 export type EventFormState = {
   title: string;
@@ -16,6 +16,7 @@ export type EventFormState = {
   joinUrl: string;
   tableTopicQuestions: TableTopicQuestionDTO[];
   attendees: AttendeeDTO[];
+  memberAttendance: MemberAttendanceDTO[];
   resources: ResourceDTO[];
   timerEntries: TimerEntryDTO[];
   fillerWords: string[];

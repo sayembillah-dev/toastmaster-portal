@@ -29,7 +29,7 @@ function LoginForm() {
         setError(data.error?.message ?? "Login failed");
         return;
       }
-      const next = params.get("next") ?? "/members";
+      const next = params.get("next") ?? "/dashboard";
       router.push(next);
       router.refresh();
     } catch {

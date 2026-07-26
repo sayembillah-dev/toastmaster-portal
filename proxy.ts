@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 const JWT_SECRET = process.env.JWT_SECRET;
 const COOKIE_NAME = process.env.JWT_COOKIE_NAME ?? "ntc_session";
 
-// Pages that redirect to /members when already signed in
+// Pages that redirect to /dashboard when already signed in
 const AUTH_PAGES = ["/login"];
 // Pages always accessible without auth (exact or prefix matches below)
 const PUBLIC_PAGES = ["/", "/join", "/meetings", "/offline", "/manifest.webmanifest"];
@@ -26,11 +26,11 @@ export async function proxy(req: NextRequest) {
   const token = req.cookies.get(COOKIE_NAME)?.value;
   const isAuthed = await tokenIsValid(token);
 
-  // Auth pages: bounce to /members if already signed in
+  // Auth pages: bounce to /dashboard if already signed in
   if (AUTH_PAGES.includes(pathname)) {
     if (isAuthed) {
       const url = req.nextUrl.clone();
-      url.pathname = "/members";
+      url.pathname = "/dashboard";
       url.search = "";
       return NextResponse.redirect(url);
     }

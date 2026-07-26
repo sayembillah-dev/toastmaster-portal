@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, UserSearch, DollarSign, CheckSquare, CalendarDays, BookOpen, Menu, TableProperties, Images } from "lucide-react";
+import { LayoutDashboard, Users, UserSearch, DollarSign, CheckSquare, CalendarDays, BookOpen, Menu, TableProperties, Images } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SignOutButton } from "./SignOutButton";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 
 const NAV_ITEMS = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Members", href: "/members", icon: Users },
   { label: "Guest Pool", href: "/guests", icon: UserSearch },
   { label: "Funds", href: "/funds", icon: DollarSign },

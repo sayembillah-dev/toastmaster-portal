@@ -9,7 +9,7 @@ type Props = { params: Promise<{ id: string }> };
 
 export default function EventPage({ params }: Props) {
   const { id } = use(params);
-  const { data: event, isLoading, isError } = useEvent(id);
+  const { data: event, isLoading, isError } = useEvent(id, { refetchInterval: 5000 });
 
   if (isLoading) {
     return (

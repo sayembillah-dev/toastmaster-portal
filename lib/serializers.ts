@@ -2,6 +2,7 @@ import type { ClubRole, MemberStatus, MemberPaymentStatus, ActivityLogType } fro
 import type { FollowUpStatus, CommunicationChannel } from "@/lib/guestConstants";
 import type { TransactionType, TransactionCategory } from "@/lib/fundConstants";
 import type { TaskPriority, TaskStatus } from "@/lib/taskConstants";
+import type { AgendaRoleKey } from "@/lib/eventConstants";
 
 export type ActivityLogEntryDTO = {
   type: ActivityLogType;
@@ -319,6 +320,8 @@ export type TimerEntryDTO = {
   status: TimerStatus;
 };
 
+export type GuestRoleLinkDTO = { role: AgendaRoleKey; token: string; createdAt: string };
+
 export type EventRolesDTO = {
   president: string;
   sergeantAtArms: string;
@@ -352,6 +355,7 @@ export type LeanEvent = {
   timerEntries: TimerEntryDTO[];
   fillerWords: string[];
   ahCounterReport: { timerId?: string; name?: string; counts?: { word?: string; count?: number }[] }[];
+  guestRoleLinks: { role?: string; token?: string; createdAt?: Date }[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -377,6 +381,7 @@ export type EventDTO = {
   timerEntries: TimerEntryDTO[];
   fillerWords: string[];
   ahCounterReport: AhCounterEntryDTO[];
+  guestRoleLinks: GuestRoleLinkDTO[];
   createdAt: string;
   updatedAt: string;
 };
@@ -467,6 +472,11 @@ export function serializeEvent(e: LeanEvent): EventDTO {
       timerId: entry?.timerId ?? "",
       name: entry?.name ?? "",
       counts: (entry?.counts ?? []).map((c) => ({ word: c?.word ?? "", count: c?.count ?? 0 })),
+    })),
+    guestRoleLinks: (e.guestRoleLinks ?? []).map((l) => ({
+      role: (l?.role ?? "") as AgendaRoleKey,
+      token: l?.token ?? "",
+      createdAt: l?.createdAt instanceof Date ? l.createdAt.toISOString() : String(l?.createdAt ?? ""),
     })),
     createdAt: e.createdAt instanceof Date ? e.createdAt.toISOString() : String(e.createdAt),
     updatedAt: e.updatedAt instanceof Date ? e.updatedAt.toISOString() : String(e.updatedAt),

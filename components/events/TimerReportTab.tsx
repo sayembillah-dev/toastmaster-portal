@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useMembers } from "@/hooks/useMembers";
 import { useGuests } from "@/hooks/useGuests";
+import { GuestRoleLinkButton } from "./GuestRoleLinkButton";
 import type { EventFormState, UpdateFormFn } from "./eventTabTypes";
-import type { TimerEntryDTO, TimerCategory, TimerStatus } from "@/lib/serializers";
+import type { TimerEntryDTO, TimerCategory, TimerStatus, GuestRoleLinkDTO } from "@/lib/serializers";
 
 // ─── Flag times (official Timer Sheet) ───────────────────────────────────────
 //   Prepared speech  → Green 5:00 / Yellow 6:00 / Red 7:00
@@ -575,9 +576,9 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-type Props = { form: EventFormState; update: UpdateFormFn };
+type Props = { form: EventFormState; update: UpdateFormFn; eventId: string; guestRoleLinks: GuestRoleLinkDTO[] };
 
-export function TimerReportTab({ form, update }: Props) {
+export function TimerReportTab({ form, update, eventId, guestRoleLinks }: Props) {
   const [entries, setEntries]       = useState<TimerEntryDTO[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [runningId, setRunningId]   = useState<string | null>(null);
@@ -725,6 +726,11 @@ export function TimerReportTab({ form, update }: Props) {
 
   return (
     <div className="space-y-5 pb-12">
+
+      {/* Guest access */}
+      <div className="flex justify-end">
+        <GuestRoleLinkButton eventId={eventId} role="timer" guestRoleLinks={guestRoleLinks} />
+      </div>
 
       {/* Active panel */}
       {selectedEntry ? (

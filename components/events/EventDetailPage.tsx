@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Printer, CheckCircle2, Loader2, Copy, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -129,6 +129,26 @@ export function EventDetailPage({ event }: Props) {
     },
     [doSave],
   );
+
+  // Pick up guest-driven changes to timer/ah-counter data from the periodic poll (see
+  // app/(app)/events/[id]/page.tsx's refetchInterval). Skipped while a local edit is still
+  // debouncing so an in-flight keystroke doesn't get clobbered by a slightly stale poll.
+  const lastMergedAtRef = useRef(event.updatedAt);
+  useEffect(() => {
+    if (event.updatedAt === lastMergedAtRef.current) return;
+    lastMergedAtRef.current = event.updatedAt;
+    if (debounceRef.current) return;
+    setForm((prev) => {
+      const next = {
+        ...prev,
+        timerEntries: event.timerEntries,
+        ahCounterReport: event.ahCounterReport,
+        fillerWords: event.fillerWords,
+      };
+      formRef.current = next;
+      return next;
+    });
+  }, [event.updatedAt, event.timerEntries, event.ahCounterReport, event.fillerWords]);
 
   const handleManualSave = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -282,8 +302,12 @@ export function EventDetailPage({ event }: Props) {
         {tab === "guestList" && <GuestListTab form={form} update={update} />}
         {tab === "attendance" && <AttendanceTab form={form} update={update} />}
         {tab === "resources" && <ResourcesTab form={form} update={update} />}
-        {tab === "timerReport" && <TimerReportTab form={form} update={update} />}
-        {tab === "ahCounter" && <AhCounterTab form={form} update={update} />}
+        {tab === "timerReport" && (
+          <TimerReportTab form={form} update={update} eventId={event.id} guestRoleLinks={event.guestRoleLinks} />
+        )}
+        {tab === "ahCounter" && (
+          <AhCounterTab form={form} update={update} eventId={event.id} guestRoleLinks={event.guestRoleLinks} />
+        )}
       </main>
     </div>
   );

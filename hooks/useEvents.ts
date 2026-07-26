@@ -19,11 +19,12 @@ export function useEventTemplates() {
   });
 }
 
-export function useEvent(id: string) {
+export function useEvent(id: string, options?: { refetchInterval?: number }) {
   return useQuery({
     queryKey: qk.events.detail(id),
     queryFn: () => api.events.get(id),
     enabled: !!id,
+    refetchInterval: options?.refetchInterval,
   });
 }
 

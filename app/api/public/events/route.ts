@@ -14,8 +14,8 @@ export async function GET() {
       .lean();
     const dtos = events.map((e) => {
       const dto = serializeEvent(e as unknown as LeanEvent);
-      // Strip attendees from public response
-      const { attendees: _a, ...pub } = dto;
+      // Strip attendees and guest-role tokens from public response
+      const { attendees: _a, guestRoleLinks: _g, ...pub } = dto;
       return pub;
     });
     return jsonOk(dtos);

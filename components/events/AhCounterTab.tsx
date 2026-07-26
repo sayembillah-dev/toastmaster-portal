@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { useMembers } from "@/hooks/useMembers";
 import { useGuests } from "@/hooks/useGuests";
 import { cn } from "@/lib/utils";
+import { GuestRoleLinkButton } from "./GuestRoleLinkButton";
 import type { EventFormState, UpdateFormFn } from "./eventTabTypes";
-import type { AhCounterEntryDTO } from "@/lib/serializers";
+import type { AhCounterEntryDTO, GuestRoleLinkDTO } from "@/lib/serializers";
 
 const DEFAULT_FILLER_WORDS = ["Ah", "Um", "So", "Like"];
 
@@ -210,9 +211,9 @@ function AccordionEntry({ entry, fillerWords, open, onToggle, onAdjust, onDelete
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-type Props = { form: EventFormState; update: UpdateFormFn };
+type Props = { form: EventFormState; update: UpdateFormFn; eventId: string; guestRoleLinks: GuestRoleLinkDTO[] };
 
-export function AhCounterTab({ form, update }: Props) {
+export function AhCounterTab({ form, update, eventId, guestRoleLinks }: Props) {
   const [addingWord,  setAddingWord]  = useState(false);
   const [newWord,     setNewWord]     = useState("");
   const [showAdd,     setShowAdd]     = useState(false);
@@ -336,6 +337,11 @@ export function AhCounterTab({ form, update }: Props) {
 
   return (
     <div className="space-y-6 pb-12">
+
+      {/* Guest access */}
+      <div className="flex justify-end">
+        <GuestRoleLinkButton eventId={eventId} role="ahCounter" guestRoleLinks={guestRoleLinks} />
+      </div>
 
       {/* Filler words */}
       <section className="space-y-2">

@@ -55,6 +55,12 @@ interface IResource {
   description: string;
 }
 
+interface IGuestRoleLink {
+  role: AgendaRoleKey;
+  token: string;
+  createdAt: Date;
+}
+
 interface ITimerEntry {
   id: string;
   label: string;
@@ -84,6 +90,7 @@ interface IEvent extends Document {
   memberAttendance: IMemberAttendance[];
   resources: IResource[];
   timerEntries: ITimerEntry[];
+  guestRoleLinks: IGuestRoleLink[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -160,6 +167,15 @@ const TableTopicQuestionSchema = new Schema<ITableTopicQuestion>(
   { _id: false },
 );
 
+const GuestRoleLinkSchema = new Schema<IGuestRoleLink>(
+  {
+    role: { type: String, trim: true, maxlength: 40, required: true },
+    token: { type: String, trim: true, maxlength: 64, required: true },
+    createdAt: { type: Date, default: () => new Date() },
+  },
+  { _id: false },
+);
+
 const ResourceSchema = new Schema<IResource>(
   {
     title: { type: String, trim: true, maxlength: 200, default: "" },
@@ -209,6 +225,7 @@ const EventSchema = new Schema<IEvent>(
     timerEntries: { type: [TimerEntrySchema], default: [] },
     fillerWords: { type: [String], default: ["Ah", "Um", "So", "Like"] },
     ahCounterReport: { type: [AhCounterEntrySchema], default: [] },
+    guestRoleLinks: { type: [GuestRoleLinkSchema], default: [] },
   },
   { timestamps: true },
 );
@@ -216,6 +233,7 @@ const EventSchema = new Schema<IEvent>(
 EventSchema.index({ date: -1 });
 EventSchema.index({ isTemplate: 1 });
 EventSchema.index({ meetingNumber: 1 });
+EventSchema.index({ "guestRoleLinks.token": 1 });
 
 // In dev, HMR re-evaluates modules but Mongoose caches the old model on the connection.
 // Delete the stale model so schema changes (like this one) take effect without a full restart.

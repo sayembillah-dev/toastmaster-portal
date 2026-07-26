@@ -12,6 +12,10 @@ export const AGENDA_ROLE_KEYS = [
 
 export type AgendaRoleKey = (typeof AGENDA_ROLE_KEYS)[number];
 
+// Roles a guest can be handed a public link + QR code for, to run themselves without an account.
+// Extend this list to add more roles later — the token mechanism itself is already role-generic.
+export const GUEST_FILLABLE_ROLES: AgendaRoleKey[] = ["timer", "ahCounter"];
+
 export const AGENDA_ROLE_LABELS: Record<AgendaRoleKey, string> = {
   president: "President",
   sergeantAtArms: "Sergeant at Arms",

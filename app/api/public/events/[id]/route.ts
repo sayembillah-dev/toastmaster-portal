@@ -14,8 +14,8 @@ export async function GET(_req: Request, { params }: Params) {
     const event = await Event.findOne({ _id: id, isTemplate: false }).lean();
     if (!event) return jsonNotFound("Event not found");
     const dto = serializeEvent(event as unknown as LeanEvent);
-    // Strip attendees from public response
-    const { attendees: _a, ...pub } = dto;
+    // Strip attendees and guest-role tokens from public response
+    const { attendees: _a, guestRoleLinks: _g, ...pub } = dto;
     return jsonOk(pub);
   } catch {
     return jsonServerError();

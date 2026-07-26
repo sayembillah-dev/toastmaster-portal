@@ -192,6 +192,17 @@ export const api = {
 
     remove: (id: string) =>
       apiFetch<{ ok: boolean }>(`/api/events/${id}`, { method: "DELETE" }),
+
+    createGuestLink: (id: string, role: string) =>
+      apiFetch<EventDTO>(`/api/events/${id}/guest-links`, {
+        method: "POST",
+        body: JSON.stringify({ role }),
+      }),
+
+    revokeGuestLink: (id: string, role: string) =>
+      apiFetch<EventDTO>(`/api/events/${id}/guest-links?role=${encodeURIComponent(role)}`, {
+        method: "DELETE",
+      }),
   },
 
   documents: {

@@ -3,6 +3,7 @@ import { CLUB_ROLES, MEMBER_STATUSES, MEMBER_PAYMENT_STATUSES } from "@/lib/memb
 import { FOLLOW_UP_STATUSES, COMMUNICATION_CHANNELS } from "@/lib/guestConstants";
 import { TRANSACTION_TYPES, ALL_CATEGORIES } from "@/lib/fundConstants";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/taskConstants";
+import { AGENDA_ROLE_KEYS } from "@/lib/eventConstants";
 
 export const memberSchema = z.object({
   fullName: z.string().min(2).max(80).trim(),
@@ -136,7 +137,7 @@ const ahCountSchema = z.object({
   count: z.number().int().min(0).default(0),
 });
 
-const ahCounterEntrySchema = z.object({
+export const ahCounterEntrySchema = z.object({
   timerId: z.string().max(100).default(""),
   name: z.string().max(80).trim().default(""),
   counts: z.array(ahCountSchema).default([]),
@@ -145,7 +146,7 @@ const ahCounterEntrySchema = z.object({
 const TIMER_CATEGORIES = ["preparedSpeaker", "iceBreaker", "tableTopic", "preparedEvaluator", "tableTopicEvaluator", "generalEvaluator"] as const;
 const TIMER_STATUSES = ["idle", "paused", "stopped"] as const;
 
-const timerEntrySchema = z.object({
+export const timerEntrySchema = z.object({
   id: z.string().max(100),
   label: z.string().max(200).trim(),
   category: z.enum(TIMER_CATEGORIES),
@@ -191,6 +192,26 @@ export const eventUpdateSchema = eventSchema.partial();
 
 export type EventInput = z.infer<typeof eventSchema>;
 export type EventUpdateInput = z.infer<typeof eventUpdateSchema>;
+
+// ── Guest role links ─────────────────────────────────────────────────────────
+
+export const guestRoleLinkRequestSchema = z.object({
+  role: z.enum(AGENDA_ROLE_KEYS),
+});
+
+export type GuestRoleLinkRequest = z.infer<typeof guestRoleLinkRequestSchema>;
+
+export const guestTimerUpdateSchema = z.object({
+  timerEntries: z.array(timerEntrySchema),
+});
+
+export const guestAhCounterUpdateSchema = z.object({
+  ahCounterReport: z.array(ahCounterEntrySchema),
+  fillerWords: z.array(z.string().max(50).trim()).max(20).optional(),
+});
+
+export type GuestTimerUpdateInput = z.infer<typeof guestTimerUpdateSchema>;
+export type GuestAhCounterUpdateInput = z.infer<typeof guestAhCounterUpdateSchema>;
 
 // ── Planner ───────────────────────────────────────────────────────────────────
 
